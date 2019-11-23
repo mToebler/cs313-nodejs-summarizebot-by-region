@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <title>Package Calculator</title>
+   <meta name="description" content="CS313 Week 9 - Postal Rate Calulator">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+   <link rel="stylesheet" href="stylesheets/main.css">
+   <link rel="stylesheet" href="stylesheets/project1.css">
+</head>
+
+<body>
+   <div class="login_container">
+      <!-- <div class="column"> -->
+      <div class="edged">
+         <div class="login h2">
+            Package Calculator
+         </div>
+         <div class="form-group package_form">
+            <form action="/calc" name="packageForm" id="packageForm" autocomplete="off" method="POST">
+               <!--don't know if i want this or not autocomplete-->
+               <label for="weight">Enter weight (oz.):</label>
+               <input type="number" min="0" max="13" step="any" name="weight" id="weight" class="form-control" placeholder="ex: 1.2" required />
+               <div class="small_space_me"></div>
+               <label for="type">Type:</label>
+               <select name="type">
+                  <option value="S">Letters (Stamped)</option>
+                  <option value="M">Letters (Metered)</option>
+                  <option value="F">Large Envelopes (Flats)</option>
+                  <option value="1">First-Class Package Service—Retail</option>
+               </select>
+               <div>
+                  <input type="hidden" name="hidden_calc" id="hidden_calc" value="false" />
+               </div>
+               <div class="space_me" id="pad_me">
+                  <input type="submit" class="btn btn-primary" name="calcpost" id="calcpost" value="Calculate Postage" />
+               </div>
+            </form>
+            <div class="signup link">
+               <!-- <a href="signup.php">sign me up</a> -->
+               <div id="error"></div>
+               <div id="error2"></div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+</body>
+
+</html>
