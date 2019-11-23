@@ -1,0 +1,27 @@
+{
+  "name": "summarize-bot-by-region",
+  "version": "1.0.0",
+  "description": "news veracity tracker",
+  "main": "index.js",
+  "dependencies": {
+    "ejs": "^2.7.4",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.1",
+    "pg": "^7.14.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mToebler/cs313-nodejs-summarizebot-by-region.git"
+  },
+  "author": "mtoebler",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mToebler/cs313-nodejs-summarizebot-by-region/issues"
+  },
+  "homepage": "https://github.com/mToebler/cs313-nodejs-summarizebot-by-region#readme"
+}
