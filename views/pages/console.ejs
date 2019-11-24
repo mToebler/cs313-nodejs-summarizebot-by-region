@@ -2,23 +2,28 @@
 <html lang="en">
 
 <head>
-   <meta charset="utf-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <title>Package Calculator</title>
-   <meta name="description" content="CS313 Week 9 - Postal Rate Calulator">
-   <meta name="viewport" content="width=device-width, initial-scale=1">
-   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-   <link rel="stylesheet" href="stylesheets/main.css">
-   <!--<link rel="stylesheet" href="stylesheets/project1.css">-->
+   <% include ../partials/header.ejs %>
 </head>
 
  <body>
-
+    <!-- <div class="container"> -->
+      <% include ../partials/nav.ejs %>
+   <!-- </div> -->
 	 <div class="wrapper">
-		<div class="box a">A</div>
-		<div class="box b">B</div>
-		<div class="box c">C</div>
-		<div class="box d">D</div>
+		<div class="box a">Analysis:</div>
+		<div class="box b">
+         For tracking:
+         <ul>
+            <% results.forEach(function(r) { %>
+                <li><%= r.id %> - <%= r.name %></li>
+            <% }); %>
+        </ul>
+      </div>
+		<div class="box c">Google Trends:</div>
+      <div class="box d">
+         NYT:
+         <div><%-news%> </div>
+      </div>
 	</div>
 </body>
 </html>

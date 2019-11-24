@@ -1,12 +1,12 @@
 const express = require('express');
 const path = require('path');
-// parsing our database url
-require('dotenv').config();
-//var usps = require('usps-web-tools-node-sdk');
-const PORT = process.env.PORT || 5000
+const NewsAPI = require('newsapi');
+let Promise = require('promise');
 
-// // USPS API configure
-// usps.configure({ userID: '711BYUID0181' });
+// parsing env variables
+require('dotenv').config();
+const PORT = process.env.PORT || 5000;
+const newsapi = new NewsAPI(process.env.API_KEY);
 
 //PG database
 const { Pool } = require('pg');
@@ -15,7 +15,6 @@ const pool = new Pool({
   ssl: true
 });
 
-// much of this is from the Heroku getting started Node template.
 express()
   .use(express.static(path.join(__dirname, 'public')))
   // for parsing application/x-www-form-urlencoded
@@ -25,15 +24,20 @@ express()
   // setting view engine to ejs. If pug, then we'd just replace ejs with pug
   // this is also required for templates.
   .set('view engine', 'ejs')
-  // and all these get paths are in the views/ directory
-  //.get('/', (req, res) => res.render('pages/index'))
-  .get('/', (req, res) => res.render('pages/console'))
-  .get('/db', async (req, res) => {
+  // setting up the webroot, RR-TNT console
+  .get('/', async (req, res) => {
     try {
-      const client = await pool.connect()
+      // var news =  new Promise((fulfill, reject) => { return newsApiTop10(req, res) }, (err) => { console.log(err) });
+      //var news = await newsApiTop10(req, res);
+      //console.log(news);
+      const client = await pool.connect();
       const result = await client.query('SELECT * FROM location');
-      const results = { 'results': (result) ? result.rows : null };
-      res.render('pages/db', results);
+      const results = {
+        'results': (result) ? result.rows : null,
+        'news': newsApiTop10()
+      };
+      console.log(results);
+      res.render('pages/console', results);
       client.release();
     } catch (err) {
       console.error(err);
@@ -49,6 +53,30 @@ express()
 
 
 // functions
+//newsApi returns top headlines
+function newsApiTop10() {
+  newsapi.v2.topHeadlines({
+    q: 'trump',
+    category: 'politics',
+    language: 'en',
+    country: 'us'
+  }).then(response => {
+    var newsjson = JSON.stringify(response);
+    console.log(newsjson);
+    console.log('************* now parsed:')
+    console.log(JSON.parse(newsjson));
+    return JSON.parse(newsjson);
+    //return response;
+    /*
+      {
+        status: "ok",
+        articles: [...]
+      }
+    */
+  });
+  // return response;
+}
+
 showTimes = () => {
   let result = '';
   const times = process.env.TIMES || 5;
@@ -90,8 +118,6 @@ calculateRate = (type, weight) => {
 
   return (total.toFixed(2));
 }
-
-
 
 // still playing around with this
 // have to make it wait I think.

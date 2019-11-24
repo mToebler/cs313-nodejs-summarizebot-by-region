@@ -40,10 +40,12 @@
 
 .wrapper {
   display: grid;
-  grid-gap: 10px;
-  grid-template-columns: 100px 100px 100px;
+  grid-gap: 5px;
+  grid-template-columns: 30% 30% 30%;
+  grid-template-rows: 18rem 9rem 9rem;
   background-color: #fff;
   color: #444;
+  margin: .25rem;
 }
 
 .box {
@@ -51,8 +53,11 @@
   color: #fff;
   border-radius: 5px;
   padding: 20px;
-  font-size: 150%;
-
+  font-size: 1.2rem;
+  transition: background-color .5s;
+}
+.box:hover {
+  background-color: #222; 
 }
 
 .a {
@@ -60,17 +65,21 @@
 }
 .b {
   grid-column: 3 ;
-  grid-row: 1 / span 2;
+  grid-row: 1 / span 3;
 }
 .c {
   grid-column: 1 ;
-  grid-row: 2 ;
+  grid-row: 2 /span 2;
 }
 .d {
   grid-column: 2 ;
-  grid-row: 2 ;
+  grid-row: 2 /span 2 ;
 }
 
 body {
-  margin: 40px;
+  /* margin: 10px; */
+}
+
+.active > a {
+  font-variant-caps: small-caps;
 }
