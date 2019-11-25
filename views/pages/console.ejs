@@ -22,10 +22,14 @@
             <% }%>
         </ul>
       </div>
-		<div class="box c">Google Trends:</div>
+      <div class="box c">
+         Google Trends:
+         <div id="gt">
+         </div>
+      </div>
       <div class="box d">
          NYT:
-         <div><ul>
+         <div id="nyt"><ul>
                <% titles.forEach(function(r) { %>
                 <li><%= r%></li>
             <% }); %>

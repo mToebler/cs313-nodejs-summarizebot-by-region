@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const url = require('url');
 const NewsAPI = require('newsapi');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
@@ -28,6 +29,14 @@ express()
   // this is also required for templates.
   .set('view engine', 'ejs')
   // setting up the webroot, RR-TNT console
+  .get('/nyt', (req, res) => {
+    nyTimesMostViewed().then(results => { res.send(results) });
+  })
+  // {
+  //   //results = await nyTimesMostViewed();
+  //   res.send(await nyTimesMostViewed());
+  //   //res.send(results);
+  // })
   .get('/', (req, res) => {
     // rewriting this. Going to do it with promises. There are two peices of information that we want:
     // 1) the results from locations table (putting this on hold)
@@ -51,10 +60,10 @@ express()
           console.log(titles)
           res.render('pages/console', { titles: (titles) ? titles : ' ' });
           return titles;
-        }, (data) => { throw new Error("Rejected" + toString(data)) }).catch((error) => { console.log(error); throw error;});
-        //.then(results => { res.render('pages/console', results)});
+        }, (data) => { throw new Error("Rejected" + toString(data)) }).catch((error) => { console.log(error); throw error; });
+      //.then(results => { res.render('pages/console', results)});
       //console.log(titles)
-        //.then(results => { res.render('pages/console', results) });
+      //.then(results => { res.render('pages/console', results) });
       //client.release();
       // res.render('pages/console');
     } catch (err) {
@@ -88,29 +97,30 @@ express()
     res.render('pages/getRate', { title: "Postage Calculator", content: "CS313 Week10 Prove: Node, Express, EJS, and You", total: total, error: '' });
   })
   // redirecting everything to console
-  .get('*', (req, res) => res.redirect('/'))
+  .get('*', (req, res) => {
+    // var url_parts = url.parse(req.url).pathname;
+    // console.log(url_parts);
+    // console.log(url_parts.pathname);
+    console.log('request for: ' + url.parse(req.url).pathname);
+    res.redirect('/');
+  })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 // functions
 //NYTimes
-function nyTimesMostViewed() {
-  fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=2CFBbQbdTJQYMRdRhEIxZubxuNXjpTG1')
-    .then(function (response) {
-      if (response.status >= 400) {
-        throw new Error("Bad response from server");
-      }
-      // good responses will fall through
-      return response.json();
-    })
-    //.then(response => response.json())
-    .then(data => {
-      const titles = data.results.map(result => {
-        return result.title;
-      })
-      console.log(titles);
-      return titles;
-    }).then(titles => { return titles });
+async function nyTimesMostViewed() {
+  var titles = '';
+  const response = await fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi);
+  if (response.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await response.json();
+  titles = data.results.map(result => {
+    return result.title;
+  });
+  console.log(titles);
+  return titles;
   // .then(titles => {
   //   // I'm thinking this is needed here because we're still in a function set {here} 
   //   // also, consider moving this into it's own module, and exporting it.
