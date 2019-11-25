@@ -87,6 +87,8 @@ express()
     var total = calculateRate(req.body.type, req.body.weight);
     res.render('pages/getRate', { title: "Postage Calculator", content: "CS313 Week10 Prove: Node, Express, EJS, and You", total: total, error: '' });
   })
+  // redirecting everything to console
+  .get('*', (req, res) => res.redirect('/'))
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
