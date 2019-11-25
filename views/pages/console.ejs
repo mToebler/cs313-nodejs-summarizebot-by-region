@@ -14,15 +14,23 @@
 		<div class="box b">
          For tracking:
          <ul>
-            <% results.forEach(function(r) { %>
+            <% if(false) { %>
+               <!-- using the false to comment out this code for now-->
+               <% results.forEach(function(r) { %>
                 <li><%= r.id %> - <%= r.name %></li>
             <% }); %>
+            <% }%>
         </ul>
       </div>
 		<div class="box c">Google Trends:</div>
       <div class="box d">
          NYT:
-         <div><%-news%> </div>
+         <div><ul>
+               <% titles.forEach(function(r) { %>
+                <li><%= r%></li>
+            <% }); %>
+            </ul>
+            </div>
       </div>
 	</div>
 </body>

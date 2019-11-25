@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
 const NewsAPI = require('newsapi');
-let Promise = require('promise');
+var Promise = require('promise/lib/es6-extensions');
+const fetch = require('isomorphic-fetch');
+
 
 // parsing env variables
 require('dotenv').config();
@@ -25,34 +27,94 @@ express()
   // this is also required for templates.
   .set('view engine', 'ejs')
   // setting up the webroot, RR-TNT console
-  .get('/', async (req, res) => {
+  .get('/', (req, res) => {
+    // rewriting this. Going to do it with promises. There are two peices of information that we want:
+    // 1) the results from locations table (putting this on hold)
+    // 2) the results from NYTimes
+    // Set up the database first. Only let the connect() await. The others no.
+    //const client = await pool.connect();
+    // the query result will be turned into a promise.
+
+    // the NYTimes
     try {
-      // var news =  new Promise((fulfill, reject) => { return newsApiTop10(req, res) }, (err) => { console.log(err) });
-      //var news = await newsApiTop10(req, res);
-      //console.log(news);
-      const client = await pool.connect();
-      const result = await client.query('SELECT * FROM location');
-      const results = {
-        'results': (result) ? result.rows : null,
-        'news': newsApiTop10()
-      };
-      console.log(results);
-      res.render('pages/console', results);
-      client.release();
+      fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=2CFBbQbdTJQYMRdRhEIxZubxuNXjpTG1')
+        .then(function (response) {
+          if (response.status >= 400) {
+            throw new Error("Bad response from server");
+          }
+          // good responses will fall through
+          return response.json();
+        })
+        .then((data) => {
+          const titles = data.results.map(result => { return result.title; }).slice(0, 5);
+          console.log(titles)
+          res.render('pages/console', { titles: (titles) ? titles : ' ' });
+          return titles;
+        }, (data) => { throw new Error("Rejected" + toString(data)) }).catch((error) => { console.log(error); throw error;});
+        //.then(results => { res.render('pages/console', results)});
+      //console.log(titles)
+        //.then(results => { res.render('pages/console', results) });
+      //client.release();
+      // res.render('pages/console');
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
     }
   })
+  /*
+  .get('/', (req, res) => {
+    try {
+      // var news =  new Promise((fulfill, reject) => { return newsApiTop10(req, res) }, (err) => { console.log(err) });
+      //var news = await newsApiTop10(req, res);
+      //console.log(news);
+      
+      const client = await pool.connect();
+      const result = await client.query('SELECT * FROM location');
+      const results = {
+        'results': (result) ? result.rows : null
+      };
+      console.log(results);
+      newsApiTop10().then(res.render('pages/console', results)).catch;
+      client.release();
+    } catch (err) {
+      console.error(err);
+      res.send("Error " + err);
+    }
+  })*/
   .get('/times', (req, res) => res.send(showTimes()))
   .post('/calc', (req, res) => {
     var total = calculateRate(req.body.type, req.body.weight);
-    res.render('pages/getRate', { title: "Postage Calculator", content: "CS313 Week10 Prove: Node, Express, EJS, and You", total: total, error: ''});
+    res.render('pages/getRate', { title: "Postage Calculator", content: "CS313 Week10 Prove: Node, Express, EJS, and You", total: total, error: '' });
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 // functions
+//NYTimes
+function nyTimesMostViewed() {
+  fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=2CFBbQbdTJQYMRdRhEIxZubxuNXjpTG1')
+    .then(function (response) {
+      if (response.status >= 400) {
+        throw new Error("Bad response from server");
+      }
+      // good responses will fall through
+      return response.json();
+    })
+    //.then(response => response.json())
+    .then(data => {
+      const titles = data.results.map(result => {
+        return result.title;
+      })
+      console.log(titles);
+      return titles;
+    }).then(titles => { return titles });
+  // .then(titles => {
+  //   // I'm thinking this is needed here because we're still in a function set {here} 
+  //   // also, consider moving this into it's own module, and exporting it.
+  //   return titles;
+  // });
+}
+
 //newsApi returns top headlines
 function newsApiTop10() {
   newsapi.v2.topHeadlines({
