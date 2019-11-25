@@ -9,6 +9,7 @@ const fetch = require('isomorphic-fetch');
 require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 const newsapi = new NewsAPI(process.env.API_KEY);
+const nytapi = process.env.NYT_API
 
 //PG database
 const { Pool } = require('pg');
@@ -37,8 +38,8 @@ express()
 
     // the NYTimes
     try {
-      fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=2CFBbQbdTJQYMRdRhEIxZubxuNXjpTG1')
-        .then(function (response) {
+      fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi)
+        .then((response) => {
           if (response.status >= 400) {
             throw new Error("Bad response from server");
           }
