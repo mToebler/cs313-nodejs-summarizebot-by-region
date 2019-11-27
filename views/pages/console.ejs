@@ -14,17 +14,15 @@
 		<div class="box b">
          For tracking:
          <ul>
-            <% if(false) { %>
-               <!-- using the false to comment out this code for now-->
-               <% results.forEach(function(r) { %>
-                <li><%= r.id %> - <%= r.name %></li>
-            <% }); %>
-            <% }%>
+            <li onclick="confirm('coming')">Click soon to initiate</li>
         </ul>
       </div>
       <div class="box c">
-         Google Trends:
-         <div id="gt">
+         Fox:
+         <div id="fox">
+            <ul>
+               <li onclick="ajaxRequest('/fox')">Click to update</li>
+            </ul>
          </div>
       </div>
       <div class="box d">
@@ -34,8 +32,17 @@
                 <li><%= r%></li>
             <% }); %>
             </ul>
-            </div>
+         </div>
       </div>
+      <div class="box e">
+         Google News:
+         <div id="googlenews">
+            <ul>
+                <li onclick="ajaxRequest('/googlenews')">Click to update</li>
+            </ul>
+         </div>
+      </div>
+
 	</div>
 </body>
 </html>

@@ -6,8 +6,8 @@
           Menu<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
           <li onclick="ajaxRequest('/nyt')"><a href="#">Pull latest from NYTimes</a></li>
-          <li><a href="/gnews">Pull latest from Google News</a></li>
-          <li><a href="/bing">Pull latest from Bing News</a></li>
+          <li onclick="ajaxRequest('/googlenews')"><a href="#">Pull latest from Google News</a></li>
+          <li onclick="ajaxRequest('/fox')"><a href="#">Pull latest from Fox News</a></li>
           <li class="divider"></li>
           <li><a href="/sumbot">Analyze news for sincerity with Summarize_B0t</a></li>
           <li><a href="/sumbot">Analyze news for deception with Summarize_B0t</a></li>

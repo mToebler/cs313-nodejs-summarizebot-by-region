@@ -5,19 +5,27 @@ const NewsAPI = require('newsapi');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
 
-
 // parsing env variables
 require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 const newsapi = new NewsAPI(process.env.API_KEY);
-const nytapi = process.env.NYT_API
+const nytapi = process.env.NYT_API;
 
-//PG database
+// PG database
 const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: true
 });
+
+// these should go in different file. for now though...
+// darn js's lack of associative arrays!
+const NEWS_URLS = [
+  ['google-news', 'https://newsapi.org/v2/top-headlines?country=us&pageSize=5&apiKey=' + process.env.API_KEY],
+  ['fox-news', 'https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY]
+];
+const GOOGLE_NEWS = 0;
+const FOX_NEWS = 1;
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
@@ -32,6 +40,14 @@ express()
   .get('/nyt', (req, res) => {
     nyTimesMostViewed().then(results => { res.send(results) });
   })
+  .get('/fox', (req, res) => {
+    //newsApiPopularFox().then(results => { res.send(results) });
+    fetchNewsApi(FOX_NEWS).then(results => { res.send(results) });
+  })
+  .get('/googlenews', (req, res) => {
+    fetchNewsApi(GOOGLE_NEWS).then(results => { res.send(results) });
+  })
+  
   // {
   //   //results = await nyTimesMostViewed();
   //   res.send(await nyTimesMostViewed());
@@ -109,6 +125,8 @@ express()
 
 // functions
 //NYTimes
+// I hate how I've had to async AND await this function. I didn't think that was needed with
+// promises.
 async function nyTimesMostViewed() {
   var titles = '';
   const response = await fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi);
@@ -117,15 +135,50 @@ async function nyTimesMostViewed() {
   }
   const data = await response.json();
   titles = data.results.map(result => {
-    return result.title;
+    return [result.title, result.url];
+  }).slice(0,5);
+  console.log(titles);
+  return JSON.stringify(titles);
+}
+
+//newsApi for Fox
+// should make this modular
+async function newsApiPopularFox() {
+  var titles = '';
+  var links = '';
+  //console.log(newsapi.API_KEY);
+  const response = await fetch('https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY);
+  if (response.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await response.json();
+  titles = data.articles.map(result => {
+    return [result.title, result.url];
+  });
+  // links = data.articles.map((result, index, array) => {
+  //   return result.url;
+  // })
+  console.log(titles);
+  console.log(JSON.stringify(titles));
+  // return titles;
+  return JSON.stringify(titles);
+}
+
+// the idea is to take newsApi and feed it a domain to plug into the API call.
+async function fetchNewsApi(apiUrl) {
+  var titles = '';
+  //console.log(newsapi.API_KEY);
+  const response = await fetch(NEWS_URLS[apiUrl][1]);
+  if (response.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await response.json();
+  titles = data.articles.map(result => {
+    return [result.title, result.url];
   });
   console.log(titles);
-  return titles;
-  // .then(titles => {
-  //   // I'm thinking this is needed here because we're still in a function set {here} 
-  //   // also, consider moving this into it's own module, and exporting it.
-  //   return titles;
-  // });
+  console.log(JSON.stringify(titles));
+  return JSON.stringify(titles);
 }
 
 //newsApi returns top headlines
