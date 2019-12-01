@@ -10,7 +10,16 @@
       <% include ../partials/nav.ejs %>
    <!-- </div> -->
 	 <div class="wrapper">
-		<div class="box a">Analysis:</div>
+		<div class="box a">
+         <h4>Article:
+            
+         </h4>
+         <div id="detail">
+            <ul>
+               <li>Load articles from each news source below. Select a headline to see it's content and analysis.</li>
+            </ul>
+         </div>
+      </div>
 		<div class="box b">
          For tracking:
          <ul>
@@ -18,6 +27,8 @@
                <li><%= r.id %> - <%= r.name %></li>
             <% }); %>
         </ul>
+        <div id="analysis">
+        </div>
       </div>
       <div class="box c">
          <h4>Fox News:

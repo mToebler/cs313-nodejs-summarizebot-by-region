@@ -14,6 +14,7 @@ const newsapi = new NewsAPI(process.env.API_KEY);
 const nytapi = process.env.NYT_API;
 const alyienAppId = process.env.ALYEN_APP_ID;
 const alyienAPI = process.env.ALYEN_API;
+const dandAPI = process.env.DAND_API;
 
 // PG database
 const { Pool } = require('pg');
@@ -73,6 +74,9 @@ express()
       }
     });
   })
+  .get('/sentiment', (req, res) => {
+    fetchDandilion(req.query.nurl).then(results => { res.send(results) });
+  })
   .get('/', async (req, res) => {
     try {
       // putting this back to fetching locations from the db. Although no functionality 
@@ -106,7 +110,6 @@ express()
     res.redirect('/');
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
-
 
 // functions
 //NYTimes
@@ -150,6 +153,16 @@ async function newsApiPopularFox() {
   return JSON.stringify(titles);
 }
 
+async function fetchDandilion(nurl) {
+  var fetchStr = 'https://api.dandelion.eu/datatxt/sent/v1/?lang=en&url=' + nurl + '&token=' + dandAPI;
+  const results = await fetch(fetchStr);
+  if (results.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await results.json();
+
+  return JSON.stringify(data);
+}
 // the idea is to take newsApi and feed it a domain to plug into the API call.
 async function fetchNewsApi(apiUrl) {
   var titles = '';
