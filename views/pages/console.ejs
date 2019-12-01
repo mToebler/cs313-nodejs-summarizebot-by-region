@@ -14,28 +14,39 @@
 		<div class="box b">
          For tracking:
          <ul>
-            <li onclick="confirm('coming')">Click soon to initiate</li>
+            <% results.forEach(function(r) { %>
+               <li><%= r.id %> - <%= r.name %></li>
+            <% }); %>
         </ul>
       </div>
       <div class="box c">
-         Fox:
+         <h4>Fox News:
+            <a href="#" onclick="ajaxRequest('/fox')"> 
+               <span class="glyphicon glyphicon-refresh right"></span>
+            </a>
+         </h4>
          <div id="fox">
             <ul>
-               <li onclick="ajaxRequest('/fox')">Click to update</li>
+               <li onclick="ajaxRequest('/fox')">Nothing displayed</li>
             </ul>
          </div>
       </div>
       <div class="box d">
-         NYT:
-         <div id="nyt"><ul>
-               <% titles.forEach(function(r) { %>
-                <li><%= r%></li>
-            <% }); %>
-            </ul>
+            <h4>NYTimes:
+               <a href="#" onclick="ajaxRequest('/nyt')"> 
+                  <span class="glyphicon glyphicon-refresh right"></span>
+               </a>
+            </h4>
+         <div id="nyt">
+            <div class="noContent">refresh for content</div>
          </div>
       </div>
       <div class="box e">
-         Google News:
+         <h4>Google News:
+            <a href="#" onclick="ajaxRequest('/googlenews')"> 
+               <span class="glyphicon glyphicon-refresh right"></span>
+            </a>
+         </h4>
          <div id="googlenews">
             <ul>
                 <li onclick="ajaxRequest('/googlenews')">Click to update</li>

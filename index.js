@@ -4,12 +4,16 @@ const url = require('url');
 const NewsAPI = require('newsapi');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
+var AYLIENTextAPI = require('aylien_textapi');
 
 // parsing env variables
+// these consts should be in ALL_CAPS
 require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 const newsapi = new NewsAPI(process.env.API_KEY);
 const nytapi = process.env.NYT_API;
+const alyienAppId = process.env.ALYEN_APP_ID;
+const alyienAPI = process.env.ALYEN_API;
 
 // PG database
 const { Pool } = require('pg');
@@ -18,10 +22,17 @@ const pool = new Pool({
   ssl: true
 });
 
+var textapi = new AYLIENTextAPI({
+  application_id: alyienAppId,
+  application_key: alyienAPI
+});
+
+
 // these should go in different file. for now though...
 // darn js's lack of associative arrays!
 const NEWS_URLS = [
   ['google-news', 'https://newsapi.org/v2/top-headlines?country=us&pageSize=5&apiKey=' + process.env.API_KEY],
+  // Google news lets you either select country OR domain but not both.
   ['fox-news', 'https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY]
 ];
 const GOOGLE_NEWS = 0;
@@ -47,52 +58,25 @@ express()
   .get('/googlenews', (req, res) => {
     fetchNewsApi(GOOGLE_NEWS).then(results => { res.send(results) });
   })
-  
-  // {
-  //   //results = await nyTimesMostViewed();
-  //   res.send(await nyTimesMostViewed());
-  //   //res.send(results);
-  // })
-  .get('/', (req, res) => {
-    // rewriting this. Going to do it with promises. There are two peices of information that we want:
-    // 1) the results from locations table (putting this on hold)
-    // 2) the results from NYTimes
-    // Set up the database first. Only let the connect() await. The others no.
-    //const client = await pool.connect();
-    // the query result will be turned into a promise.
-
-    // the NYTimes
-    try {
-      fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi)
-        .then((response) => {
-          if (response.status >= 400) {
-            throw new Error("Bad response from server");
-          }
-          // good responses will fall through
-          return response.json();
-        })
-        .then((data) => {
-          const titles = data.results.map(result => { return result.title; }).slice(0, 5);
-          console.log(titles)
-          res.render('pages/console', { titles: (titles) ? titles : ' ' });
-          return titles;
-        }, (data) => { throw new Error("Rejected" + toString(data)) }).catch((error) => { console.log(error); throw error; });
-      //.then(results => { res.render('pages/console', results)});
-      //console.log(titles)
-      //.then(results => { res.render('pages/console', results) });
-      //client.release();
-      // res.render('pages/console');
-    } catch (err) {
-      console.error(err);
-      res.send("Error " + err);
-    }
+  .get('/alyen', (req, res) => {
+    textapi.sentiment({
+      // 'text': 'Google Fires 4 Workers Active in Labor Organizing'
+      'url': 'https://www.nytimes.com/2019/11/26/us/politics/trump-whistle-blower-complaint-ukraine.html'
+      //https://api.aylien.com/api/v1/classify-taxonomy/iptc-subjectcode?language=en&input=https%3A%2F%2Fwww.nytimes.com%2F2019%2F11%2F29%2Fopinion%2Fsunday%2Fandrew-johnson-donald-trump.html&taxonomy=iptc-subjectcode&url=https%3A%2F%2Fwww.nytimes.com%2F2019%2F11%2F29%2Fopinion%2Fsunday%2Fandrew-johnson-donald-trump.html&
+    }, function(error, response) {
+      if (error === null) {
+        console.log(response);
+        res.send(response);
+      } else {
+        console.log('Alyen ERROR: ' + error);
+        res.send('error! Alyen!');
+      }
+    });
   })
-  /*
-  .get('/', (req, res) => {
+  .get('/', async (req, res) => {
     try {
-      // var news =  new Promise((fulfill, reject) => { return newsApiTop10(req, res) }, (err) => { console.log(err) });
-      //var news = await newsApiTop10(req, res);
-      //console.log(news);
+      // putting this back to fetching locations from the db. Although no functionality 
+      // is associated with them yet.
       
       const client = await pool.connect();
       const result = await client.query('SELECT * FROM location');
@@ -100,13 +84,14 @@ express()
         'results': (result) ? result.rows : null
       };
       console.log(results);
-      newsApiTop10().then(res.render('pages/console', results)).catch;
+      res.render('pages/console', results);
       client.release();
     } catch (err) {
       console.error(err);
       res.send("Error " + err);
     }
-  })*/
+  })
+
   .get('/times', (req, res) => res.send(showTimes()))
   .post('/calc', (req, res) => {
     var total = calculateRate(req.body.type, req.body.weight);
@@ -143,6 +128,7 @@ async function nyTimesMostViewed() {
 
 //newsApi for Fox
 // should make this modular
+// this is now depricated for fetchNewsAPI(APIURL)
 async function newsApiPopularFox() {
   var titles = '';
   var links = '';
@@ -180,6 +166,8 @@ async function fetchNewsApi(apiUrl) {
   console.log(JSON.stringify(titles));
   return JSON.stringify(titles);
 }
+
+
 
 //newsApi returns top headlines
 function newsApiTop10() {

@@ -1,0 +1,4 @@
+{
+      "ext": "*.pde, *.js, *.ejs, *.mjs, *.coffee, *.litcoffee, *.json",
+      "verbose": true
+}
