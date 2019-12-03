@@ -49,7 +49,7 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
   grid-gap: 5px;
   grid-template-columns: 25% 25% 25% 24%;
   grid-template-rows: 21rem 15rem 15rem;
-  background-color: #eee;
+  background-color: #ededed;
   color: #444;
   margin: .25rem;
 }
@@ -73,6 +73,7 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 
 .a {
   grid-column: 1 / span 3;
+  overflow-y: scroll;
 }
 .b {
   grid-column: 4 ;

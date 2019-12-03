@@ -12,8 +12,8 @@ require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 const newsapi = new NewsAPI(process.env.API_KEY);
 const nytapi = process.env.NYT_API;
-const alyienAppId = process.env.ALYEN_APP_ID;
-const alyienAPI = process.env.ALYEN_API;
+const aylienAppId = process.env.AYLIEN_APP_ID;
+const aylienAPI = process.env.AYLIEN_API;
 const dandAPI = process.env.DAND_API;
 
 // PG database
@@ -24,8 +24,8 @@ const pool = new Pool({
 });
 
 var textapi = new AYLIENTextAPI({
-  application_id: alyienAppId,
-  application_key: alyienAPI
+  application_id: aylienAppId,
+  application_key: aylienAPI
 });
 
 
@@ -50,30 +50,42 @@ express()
   .set('view engine', 'ejs')
   // setting up the webroot, RR-TNT console
   .get('/nyt', (req, res) => {
-    nyTimesMostViewed().then(results => { res.send(results) });
+    getNyTimesMostViewed().then(results => { res.send(results) });
   })
   .get('/fox', (req, res) => {
-    //newsApiPopularFox().then(results => { res.send(results) });
+    //getNewsApiPopularFox().then(results => { res.send(results) });
     fetchNewsApi(FOX_NEWS).then(results => { res.send(results) });
   })
   .get('/googlenews', (req, res) => {
     fetchNewsApi(GOOGLE_NEWS).then(results => { res.send(results) });
   })
-  .get('/alyen', (req, res) => {
-    textapi.sentiment({
-      // 'text': 'Google Fires 4 Workers Active in Labor Organizing'
-      'url': 'https://www.nytimes.com/2019/11/26/us/politics/trump-whistle-blower-complaint-ukraine.html'
-      //https://api.aylien.com/api/v1/classify-taxonomy/iptc-subjectcode?language=en&input=https%3A%2F%2Fwww.nytimes.com%2F2019%2F11%2F29%2Fopinion%2Fsunday%2Fandrew-johnson-donald-trump.html&taxonomy=iptc-subjectcode&url=https%3A%2F%2Fwww.nytimes.com%2F2019%2F11%2F29%2Fopinion%2Fsunday%2Fandrew-johnson-donald-trump.html&
-    }, function(error, response) {
+  .get('/aylien', (req, res) => {
+    textapi.sentiment({ 'mode': 'document','url': req.query.nurl}, (error, response) => {
       if (error === null) {
         console.log(response);
-        res.send(response);
+        //var result = JSON.parse(response);
+        var result = JSON.stringify(response);
+        console.log(result);
+        res.send(result);
       } else {
-        console.log('Alyen ERROR: ' + error);
-        res.send('error! Alyen!');
+        console.log('aylien error: ' + error);
+        throw error('Aylien error: ' + error);
       }
+      
     });
+    
   })
+  // .get('/aylien', (req, res) => {
+  //   //getAylien(req.query.nurl).then(results => { res.send(results) }).catch(error => { console.log('Aylien Error: ' + error);})
+  //   getAylien(req.query.nurl)
+  //     .then(results => {
+  //       console.log('getAylien results from get call: ' + results);
+  //       return results.json();
+  //     })
+  //     .then(results => {
+  //       res.send(JSON.stringify(results))
+  //     }).catch(results => { console.log('Aylien Error: ' + results); })
+  // })
   .get('/sentiment', (req, res) => {
     fetchDandilion(req.query.nurl).then(results => { res.send(results) });
   })
@@ -81,7 +93,7 @@ express()
     try {
       // putting this back to fetching locations from the db. Although no functionality 
       // is associated with them yet.
-      
+
       const client = await pool.connect();
       const result = await client.query('SELECT * FROM location');
       const results = {
@@ -95,12 +107,6 @@ express()
       res.send("Error " + err);
     }
   })
-
-  .get('/times', (req, res) => res.send(showTimes()))
-  .post('/calc', (req, res) => {
-    var total = calculateRate(req.body.type, req.body.weight);
-    res.render('pages/getRate', { title: "Postage Calculator", content: "CS313 Week10 Prove: Node, Express, EJS, and You", total: total, error: '' });
-  })
   // redirecting everything to console
   .get('*', (req, res) => {
     // var url_parts = url.parse(req.url).pathname;
@@ -112,10 +118,8 @@ express()
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 // functions
-//NYTimes
-// I hate how I've had to async AND await this function. I didn't think that was needed with
-// promises.
-async function nyTimesMostViewed() {
+// NYTimes
+async function getNyTimesMostViewed() {
   var titles = '';
   const response = await fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi);
   if (response.status >= 400) {
@@ -124,15 +128,70 @@ async function nyTimesMostViewed() {
   const data = await response.json();
   titles = data.results.map(result => {
     return [result.title, result.url];
-  }).slice(0,5);
+  }).slice(0, 5);
   console.log(titles);
+  return JSON.stringify(titles);
+}
+
+async function fetchDandilion(nurl) {
+  var fetchStr = 'https://api.dandelion.eu/datatxt/sent/v1/?lang=en&url=' + nurl + '&token=' + dandAPI;
+  const results = await fetch(fetchStr);
+  if (results.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await results.json();
+
+  return JSON.stringify(data);
+}
+
+//getAylien sentiment analysis.
+// CAUTION, this is on a trial key. Need to catch promise error and deal.
+// Using a callback rather than promise.
+async function getAylien(nurl) {
+  console.log('Aylien: nurl is: ' + nurl);
+  //build & send the Aylien request object
+  const results = await textapi.sentiment({
+    'mode': 'document',
+    'url': nurl,
+  }, (error, response) => {
+    if (error === null) {
+      console.log('getAylien: inside error===null, got: ' + response);
+      return response; //JSON.parse(response).stringify();
+    } else {
+      console.log('Aylien ERROR: ' + error);
+      //throwError(code, errorType, errorMessage);
+      // new error handling API
+      sendError(response, '', error);
+      //response.send('error! Aylien!');
+    }
+  });//.catch(error => { throwError('501' 'Aylien catch ERROR', error) });
+  const data = await results.json();
+  console.log('getAylien: about to return data: ');
+  return results;
+}
+
+//fetchNewsApi
+// the idea is to take newsApi and feed it a domain to plug into the API call.
+async function fetchNewsApi(apiUrl) {
+  var titles = '';
+  //console.log(newsapi.API_KEY);
+  const response = await fetch(NEWS_URLS[apiUrl][1]);
+  if (response.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await response.json();
+  titles = data.articles.map(result => {
+    return [result.title, result.url];
+  });
+  console.log(titles);
+  console.log(JSON.stringify(titles));
   return JSON.stringify(titles);
 }
 
 //newsApi for Fox
 // should make this modular
 // this is now depricated for fetchNewsAPI(APIURL)
-async function newsApiPopularFox() {
+async function getNewsApiPopularFox() {
   var titles = '';
   var links = '';
   //console.log(newsapi.API_KEY);
@@ -153,132 +212,75 @@ async function newsApiPopularFox() {
   return JSON.stringify(titles);
 }
 
-async function fetchDandilion(nurl) {
-  var fetchStr = 'https://api.dandelion.eu/datatxt/sent/v1/?lang=en&url=' + nurl + '&token=' + dandAPI;
-  const results = await fetch(fetchStr);
-  if (results.status >= 400) {
-    throw new Error("Bad response from server");
-  }
-  const data = await results.json();
-
-  return JSON.stringify(data);
-}
-// the idea is to take newsApi and feed it a domain to plug into the API call.
-async function fetchNewsApi(apiUrl) {
-  var titles = '';
-  //console.log(newsapi.API_KEY);
-  const response = await fetch(NEWS_URLS[apiUrl][1]);
-  if (response.status >= 400) {
-    throw new Error("Bad response from server");
-  }
-  const data = await response.json();
-  titles = data.articles.map(result => {
-    return [result.title, result.url];
-  });
-  console.log(titles);
-  console.log(JSON.stringify(titles));
-  return JSON.stringify(titles);
-}
-
-
-
-//newsApi returns top headlines
-function newsApiTop10() {
+//newsApi returns top headlines for a query string if provided.
+function getNewsApiPoliticalTop10(q) {
   newsapi.v2.topHeadlines({
-    q: 'trump',
+    q: q == null ? '' : q,
     category: 'politics',
     language: 'en',
     country: 'us'
   }).then(response => {
-    var newsjson = JSON.stringify(response);
-    console.log(newsjson);
-    console.log('************* now parsed:')
-    console.log(JSON.parse(newsjson));
-    return JSON.parse(newsjson);
-    //return response;
-    /*
-      {
-        status: "ok",
-        articles: [...]
-      }
-    */
-  });
-  // return response;
+    return response.json();
+  })
+  // find better structure.
+  // this may be a promise object
+  return response;
 }
 
-showTimes = () => {
-  let result = '';
-  const times = process.env.TIMES || 5;
-  for (i = 0; i < times; i++) {
-    result += i + ' ';
+// ERROR HANDLING HELPER FUNCTIONS 
+// rewriting everything to handle errors better
+// by using then(success, error) 
+
+// throwError function variable definition
+// build an Error object then throw which stops exe chain.
+// params:
+//   code:      added property for server response code in 400|500 range
+//   errorType: added custom error type, 'invalid request' 'not found' 'db error'
+//   errorMsg:  longer description of error, 'Invalid query parameter' 'Article not found' 
+throwError = (code, errorType, errorMessage) => {
+  return error => {
+    // create error if empty result
+    if (!error) {
+      error = new Error(errorMessage || 'Default Error');
+    }
+    // add custom fields
+    error.code = code;
+    error.errorType = errorType;
+    // finally, return error obj and stop promise chain execution
+    throw error;
   }
+}
+// to be used in lieu of nested try/catch blocks allowing for fine tuned 
+// errors to be used with promises and asyncs alike
+// inspired by article in codeburst.io
+// params:
+//   fn:   function represents logic in nested try/catch block, to
+//         aid readability when calling THIS SHOULD BE PASSED IN AS
+//         THE FUNCTION's COMPLIMENT (its opposite, i.e, !fn )
+//   (see throwError for others)
+// Ex: throwIf(fetchResult => !fetchResult, 400, 'invalid request', 'Invalid query parameter')
+throwIf = (fn, code, errorType, errorMessage) => result => {
+  // note the double function notation above for result. This is the same as
+  // {return result => {...} }
+  // to aid readability (otherwise a '!' would be here)
+  if (fn(result)) {
+    // from above. the '()' at end triggers the creation of a new Error object
+    // from the thrown error returned by throwError
+    return throwError(code, errorType, errorMessage)();
+  }
+  // result returned elsewise;
   return result;
 }
-
-calculateRate = (type, weight) => {
-  var base = 0;
-  var total = 0;
-  console.log(type + ', ' + weight);
-  switch (type) {
-    case 'S':
-      base = .55;
-      total = (base + (.15 * (weight > 3 ? 3 : Math.trunc(weight) - 1)));
-      break;
-    case 'M':
-      base = .50;
-      total = (base + (.15 * (weight > 3 ? 3 : Math.trunc(weight) - 1)));
-      break;
-    case 'F':
-      base = 1;
-      total = (base + (.15 * (weight > 13 ? 13 : Math.trunc(weight) - 1)));
-      break;
-    case '1':
-      // I don't want to do a nested switch. To make this meaningful
-      // I'm going to play around with the USPS API.
-      //total = 3.66;
-      // need to make this wait?
-      total = uspsGetRate(weight);
-      total = total == NaN ? 3.66 : total;
-      console.log(total);
-      // arg!
-      total = 3.66;
-      break;
-  }
-
-  return (total.toFixed(2));
+// sends success at end of promise chain
+sendSuccess = (res, message) => data => {
+  res.status(200).json({ type: 'success', message, data });
+}
+// sends the thrown error caught in the actual catch() block
+sendError = (res, status, message) => error => {
+  res.status(status || error.status).json({
+    type: 'error',
+    message: message || error.message,
+    error
+  });
 }
 
-// still playing around with this
-// have to make it wait I think.
-async function uspsGetRate(weight) {
-  usps.rateCalculator.rate(
-    { // build a USPS package object, passing in weight
-      // ran out of time, was going to replace the zip's with actual
-      // form input. Arg. As it is, I need to pull out the rate from the json.
-      // not sure how to do that in Node. Will need to investigate more. =()
-      revision: '2',
-      package: [
-        {
-          service: 'FIRST CLASS',
-          firstClassMailType: 'LETTER',
-          zipOrigination: '89117',
-          zipDestination: '83460',
-          pounds: '0',
-          ounces: weight,
-          size: 'REGULAR',
-          machinable: true
-        }
-      ]
-    }, function (error, response) {
-      if (error) {
-        console.log(error);
-        return Number.parseFloat('0');
-      } else {
-        console.log(JSON.stringify(response));
-        // need to dip into the response body and pull out the rate. ><
-        //return JSON.stringify(response);
-        return Number.parseFloat('3.66');
-      }
-    }
-  );
-}

@@ -39,13 +39,33 @@ function ajaxSentimentCheck(ajaxUrl) {
       console.log('dandelion getted:' + data);
       return data;
    })
-      //fetch(urlString)
+      //fetch(urlString) 
+      // consider changing to response.json() (won't hold process)
    .then(response => JSON.parse(response))
    .then(data => {
       console.log(data);
       $('#analysis').text('Dandelion rating: ' + (JSON.stringify(data.sentiment.score)) +
          ' ' + (JSON.stringify(data.sentiment.type)));
-      var detailText = JSON.stringify(data.text).replace(/(\\){1}(n){1}/, '');
-      $('#detail').text(JSON.stringify(detailText));
+      // getting ridiculous results here
+      //replace(/(\\){1}(n){1}/, '');
+      var detailText = JSON.stringify(data.text);
+      $('#detail').text(detailText);
    });
+   // do the same thing, but from alyen
+   console.log('Starting Aylien...');
+   // trying the => function notation
+   try {
+      $.get('/aylien?nurl=' + ajaxUrl, (data) => {
+         console.log('aylien getted: ' + data);
+         return data;
+      })
+         .then(response => JSON.parse(response))
+         .then(data => {
+            console.log(data.polarity);
+            $('#aylienAnal').text('Aylien analysis: ' + data.polarity + ', confidence(' +
+               data.polarity_confidence + ')');
+         });
+   } catch (error) {
+      console.log('try-catch aylien error:' + error);
+   }
 }
