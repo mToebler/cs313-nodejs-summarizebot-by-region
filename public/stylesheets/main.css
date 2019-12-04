@@ -58,9 +58,9 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 }
 
 .box {
-  background-color: #333;
+  background-color: #262626;
   font-family: 'Crimson Pro', serif;
-  color: #eee;
+  color: #e6e6e6;
   border-radius: 5px;
   padding: 18px;
   font-size: 1.2rem;
@@ -68,7 +68,7 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
   transition: background-color .5s;
 }
 .box:hover {
-  background-color: #222; 
+  background-color: #1c1c1c; 
 }
 
 .a {
@@ -98,7 +98,7 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 .box  a:hover {
   color:#fff;  
   text-decoration: none;
-  transition: ease color .25s;
+  /* transition: ease color .25s; */
 }
 
 ul {
@@ -112,6 +112,11 @@ ul {
   font-size: 1.25rem;
   /* color:#A0D4D8; */
   color:#82B1D8;
+}
+.box li:hover:first-letter { 
+  /* color: #d88c82;  */
+  color: #ced882;
+  transition: ease color .25s;
 }
 li>a>img {
   max-width: 80px !important;
@@ -143,7 +148,8 @@ body {
   float: right;
 }
 .right:hover {
-  color:#c0d8eb;
+  /* color:#c0d8eb; */
+  color:#ced882
 }
 
 .noContent {

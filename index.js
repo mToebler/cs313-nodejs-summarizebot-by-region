@@ -5,6 +5,8 @@ const NewsAPI = require('newsapi');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
 var AYLIENTextAPI = require('aylien_textapi');
+const { NEWS_URLS, GOOGLE_NEWS, FOX_NEWS } = require('./middleware/constants');
+console.log('vars are: ' + NEWS_URLS + '\n' + GOOGLE_NEWS + '\n' + FOX_NEWS);
 
 // parsing env variables
 // these consts should be in ALL_CAPS
@@ -27,17 +29,6 @@ var textapi = new AYLIENTextAPI({
   application_id: aylienAppId,
   application_key: aylienAPI
 });
-
-
-// these should go in different file. for now though...
-// darn js's lack of associative arrays!
-const NEWS_URLS = [
-  ['google-news', 'https://newsapi.org/v2/top-headlines?country=us&pageSize=5&apiKey=' + process.env.API_KEY],
-  // Google news lets you either select country OR domain but not both.
-  ['fox-news', 'https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY]
-];
-const GOOGLE_NEWS = 0;
-const FOX_NEWS = 1;
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
@@ -173,6 +164,7 @@ async function getAylien(nurl) {
 //fetchNewsApi
 // the idea is to take newsApi and feed it a domain to plug into the API call.
 async function fetchNewsApi(apiUrl) {
+  console.log('vars are: ' + NEWS_URLS + '\n' + GOOGLE_NEWS + '\n' + FOX_NEWS);
   var titles = '';
   //console.log(newsapi.API_KEY);
   const response = await fetch(NEWS_URLS[apiUrl][1]);
