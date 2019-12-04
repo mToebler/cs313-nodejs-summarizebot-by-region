@@ -20,7 +20,8 @@ function ajaxRequest(ajaxUrl) {
          // array: title; the 2nd: its url. return each like so:
          //<li><a href='2nd'>1st</a></li>
          //return '<li><a href="' + value[1] + '">' + value[0] + '</a></li>';
-         return '<li><a href="#" onclick="ajaxSentimentCheck(\'' + value[1] + '\')">' + value[0] + '</a></li>';
+         return "<li><a href='#' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
+         //return '<li><a href="#" onclick="ajaxSentimentCheck(\''+ value[0]+ '\', \'' + value[1] + '\')">' + value[0] + '</a></li>';
       });
       
       console.log('returning to: ' + divId + ' this: ' + results + 'derived from: ' + data);
@@ -33,14 +34,53 @@ function ajaxRequest(ajaxUrl) {
 // Two sentiment checks are (to be) done dandelion (free for students) 
 // and Alyen (two week trial key limited to 1000 'units'/24 hrs). 
 // we don't want to do this on the client side to keep key secure.
-function ajaxSentimentCheck(ajaxUrl) {
+function ajaxSentimentCheck(byline, ajaxUrl) {
+   // using dandelion to get the 'summary'
+   // $.get('/sentiment?nurl=' + ajaxUrl, function (data) {
+   //    console.log('dandelion getted:' + data);
+   //    return data;
+   // })
+   //    //fetch(urlString) 
+   //    // consider changing to response.json() (won't hold process)
+   // .then(response => JSON.parse(response))
+   // .then(data => {
+   //    console.log(data);
+   //    $('#analysis').text('Dandelion rating: ' + (JSON.stringify(data.sentiment.score)) +
+   //       ' ' + (JSON.stringify(data.sentiment.type)));
+   //    // getting ridiculous results here
+   //    //replace(/(\\){1}(n){1}/, '');
+   //    var detailText = JSON.stringify(data.text);
+   //    $('#detail').text(detailText);
+   // });
+   aylienAnalyze(ajaxUrl);
+   dandelionAnalyze(ajaxUrl);
+   $('#articleTitle').text("Article: " + byline);
+   // do the same thing, but from alyen
+   // console.log('Starting Aylien...');
+   // // trying the => function notation
+   // try {
+   //    $.get('/aylien?nurl=' + ajaxUrl, (data) => {
+   //       console.log('aylien getted: ' + data);
+   //       return data;
+   //    })
+   //       .then(response => JSON.parse(response))
+   //       .then(data => {
+   //          console.log(data.polarity);
+   //          $('#aylienAnal').text('Aylien analysis: ' + data.polarity + ', confidence(' +
+   //             data.polarity_confidence + ')');
+   //       });
+   // } catch (error) {
+   //    console.log('try-catch aylien error:' + error);
+   // }
+}
+
+function dandelionAnalyze(ajaxUrl) {
    // using dandelion to get the 'summary'
    $.get('/sentiment?nurl=' + ajaxUrl, function (data) {
       console.log('dandelion getted:' + data);
       return data;
    })
-      //fetch(urlString) 
-      // consider changing to response.json() (won't hold process)
+   // consider changing to response.json() (won't hold process)
    .then(response => JSON.parse(response))
    .then(data => {
       console.log(data);
@@ -51,7 +91,9 @@ function ajaxSentimentCheck(ajaxUrl) {
       var detailText = JSON.stringify(data.text);
       $('#detail').text(detailText);
    });
-   // do the same thing, but from alyen
+}
+
+function aylienAnalyze(ajaxUrl) {
    console.log('Starting Aylien...');
    // trying the => function notation
    try {
@@ -68,4 +110,10 @@ function ajaxSentimentCheck(ajaxUrl) {
    } catch (error) {
       console.log('try-catch aylien error:' + error);
    }
+}
+
+function ajaxPullAll() {
+   ajaxRequest('/fox');
+   ajaxRequest('/googlenews');
+   ajaxRequest('/nyt');
 }

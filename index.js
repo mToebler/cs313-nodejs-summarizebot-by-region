@@ -6,7 +6,6 @@ var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
 var AYLIENTextAPI = require('aylien_textapi');
 const { NEWS_URLS, GOOGLE_NEWS, FOX_NEWS } = require('./middleware/constants');
-console.log('vars are: ' + NEWS_URLS + '\n' + GOOGLE_NEWS + '\n' + FOX_NEWS);
 
 // parsing env variables
 // these consts should be in ALL_CAPS
@@ -164,7 +163,6 @@ async function getAylien(nurl) {
 //fetchNewsApi
 // the idea is to take newsApi and feed it a domain to plug into the API call.
 async function fetchNewsApi(apiUrl) {
-  console.log('vars are: ' + NEWS_URLS + '\n' + GOOGLE_NEWS + '\n' + FOX_NEWS);
   var titles = '';
   //console.log(newsapi.API_KEY);
   const response = await fetch(NEWS_URLS[apiUrl][1]);
