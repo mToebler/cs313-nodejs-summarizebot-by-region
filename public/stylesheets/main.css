@@ -43,7 +43,6 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 .jumbotron .lang-logo img {
   max-width: 100%;
 }
-
 .wrapper {
   display: grid;
   grid-gap: 5px;
@@ -55,6 +54,9 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 }
 .navbar {
   margin-bottom: 3px;
+}
+.navbar-right {
+  margin-right: -90%;
 }
 
 .box {
@@ -154,6 +156,9 @@ body {
   /* color:#c0d8eb; */
   color:#ced882
 }
+.small {
+  max-width: 88%;
+}
 
 .noContent {
   font-size: 1.5rem;
@@ -162,4 +167,7 @@ body {
 }
 .active > a {
   font-variant-caps: small-caps;
+}
+.container {
+  display: inline-flex !important;
 }

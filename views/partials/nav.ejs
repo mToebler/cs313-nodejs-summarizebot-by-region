@@ -19,9 +19,15 @@
         <a href="#"><img id="logo" src="img/R-TNT_fitd.png"></a>
       </li>
     </ul>
-    <ul class="nav navbar-nav navbar-right">
+    <ul class="nav navbar-nav ">
       <li class="navbar-right">
-        <a href="/track"><span class="glyphicon glyphicon-book"></span>Track the News</a>
+        <div class="input-group small right">
+          <input type="text" class="form-control" id="userSearchText" placeholder="Search" name="search">
+          <div class="input-group-btn">
+            <button class="btn btn-default" type="submit" onclick="userSearch();"><i class="glyphicon glyphicon-search"></i></button>
+          </div>
+        </div>
+        <!-- <a href="/track"><span class="glyphicon glyphicon-search"></span>Search News</a> -->
       </li>
     </ul>
   </div>

@@ -40,14 +40,14 @@ express()
   .set('view engine', 'ejs')
   // setting up the webroot, RR-TNT console
   .get('/nyt', (req, res) => {
-    getNyTimesMostViewed().then(results => { res.send(results) });
+    getNyTimesMostViewed(req.query.q).then(results => { res.send(results) });
   })
   .get('/fox', (req, res) => {
     //getNewsApiPopularFox().then(results => { res.send(results) });
-    fetchNewsApi(FOX_NEWS).then(results => { res.send(results) });
+    fetchNewsApi(FOX_NEWS, req.query.q).then(results => { res.send(results) });
   })
   .get('/googlenews', (req, res) => {
-    fetchNewsApi(GOOGLE_NEWS).then(results => { res.send(results) });
+    fetchNewsApi(GOOGLE_NEWS, req.query.q).then(results => { res.send(results) });
   })
   .get('/aylien', (req, res) => {
     textapi.sentiment({ 'mode': 'document','url': req.query.nurl}, (error, response) => {
@@ -58,26 +58,18 @@ express()
         console.log(result);
         res.send(result);
       } else {
-        console.log('aylien error: ' + error);
+        console.log('Aylien error: ' + error);
         throw error('Aylien error: ' + error);
       }
       
     });
     
   })
-  // .get('/aylien', (req, res) => {
-  //   //getAylien(req.query.nurl).then(results => { res.send(results) }).catch(error => { console.log('Aylien Error: ' + error);})
-  //   getAylien(req.query.nurl)
-  //     .then(results => {
-  //       console.log('getAylien results from get call: ' + results);
-  //       return results.json();
-  //     })
-  //     .then(results => {
-  //       res.send(JSON.stringify(results))
-  //     }).catch(results => { console.log('Aylien Error: ' + results); })
-  // })
   .get('/sentiment', (req, res) => {
     fetchDandilion(req.query.nurl).then(results => { res.send(results) });
+  })
+  .get('/q', (req, res) => {
+    queryAllSources(req.query.q).then(results => { console.log('qAllSrces: returning' + results); res.send(results); });
   })
   .get('/', async (req, res) => {
     try {
@@ -107,18 +99,40 @@ express()
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-// functions
+// named functions
+
 // NYTimes
-async function getNyTimesMostViewed() {
+async function getNyTimesMostViewed(token) {
+  //Elasticsearch, so the filter query uses standard Lucene syntax. 
+  var urlStr = '';
+  if (token === undefined) {
+    urlStr = 'https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi;
+  } else {
+    token = cleanTokenize(token);
+    urlStr = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + token + '&page=0&sort=newest&api-key=' + nytapi;
+  }
   var titles = '';
-  const response = await fetch('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi);
+  const response = await fetch(urlStr);
   if (response.status >= 400) {
     throw new Error("Bad response from server");
   }
   const data = await response.json();
-  titles = data.results.map(result => {
-    return [result.title, result.url];
-  }).slice(0, 5);
+  // token : data.response.docs.headline.main, response.docs.web_url
+  if (token === undefined) {
+    titles = data.results.map(result => {
+      return [result.title, result.url]
+    }).slice(0, 5);
+  } else {
+    try {
+      console.log('getNyTimesMostViewed: data received - ' + JSON.stringify(data));
+      titles = data.response.docs.map(docs => {
+        return [docs.headline.main, docs.web_url];
+      }).slice(0, 5);
+    } catch (error) {
+      console.log('getNyTimesMostViewed: Error ' + error);
+      throwError(500, 'NYTimes error', error + '');
+    }
+  }
   console.log(titles);
   return JSON.stringify(titles);
 }
@@ -156,16 +170,23 @@ async function getAylien(nurl) {
     }
   });//.catch(error => { throwError('501' 'Aylien catch ERROR', error) });
   const data = await results.json();
-  console.log('getAylien: about to return data: ');
+  console.log('getAylien: about to return data: ' + data);
   return results;
 }
 
 //fetchNewsApi
 // the idea is to take newsApi and feed it a domain to plug into the API call.
-async function fetchNewsApi(apiUrl) {
+async function fetchNewsApi(apiUrl, token) {
   var titles = '';
-  //console.log(newsapi.API_KEY);
-  const response = await fetch(NEWS_URLS[apiUrl][1]);
+  var urlStr = '';
+  if (token === undefined) {
+    urlStr = NEWS_URLS[apiUrl][1];
+  } else {
+    token = cleanTokenize(token);
+    urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
+  }
+  //urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
+  const response = await fetch(urlStr);
   if (response.status >= 400) {
     throw new Error("Bad response from server");
   }
@@ -174,8 +195,20 @@ async function fetchNewsApi(apiUrl) {
     return [result.title, result.url];
   });
   console.log(titles);
-  console.log(JSON.stringify(titles));
+  //console.log(JSON.stringify(titles));
   return JSON.stringify(titles);
+}
+
+async function queryAllSources(token) {
+  const nyt = getNyTimesMostViewed(token);
+  const google = fetchNewsApi(GOOGLE_NEWS, token);
+  const fox = fetchNewsApi(FOX_NEWS, token);
+  await nyt;
+  await google;
+  await fox;
+  // may return a promise object but I don't think so.
+  // returning an array of stringified json objects.
+  return [nyt, google, fox ];
 }
 
 //newsApi for Fox
@@ -272,5 +305,14 @@ sendError = (res, status, message) => error => {
     message: message || error.message,
     error
   });
+}
+
+function cleanTokenize(token, separator) {
+  separator = separator || "+";
+  if (!token === undefined) {
+    token = token.replace(/[\W_]+/g, separator);
+    token = token.endsWith('+') ? token.substr(-1) : token;
+  }
+  return token;
 }
 
