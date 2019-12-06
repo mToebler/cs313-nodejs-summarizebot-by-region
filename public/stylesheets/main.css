@@ -171,3 +171,15 @@ body {
 .container {
   display: inline-flex !important;
 }
+#credits {
+  font-size: .9rem;
+  padding: 1rem .5rem;
+  display: 
+}
+#credits a {
+  color:#ced882;
+}
+#credits a:hover {
+  color:#82B1D8;
+  transition: ease color .5s;
+}

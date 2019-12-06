@@ -21,15 +21,21 @@
          </div>
       </div>
 		<div class="box b">
-         For tracking:
+         <!-- For tracking: -->
          <ul>
+            <%if(false) {%>
             <% results.forEach(function(r) { %>
                <li><%= r.id %> - <%= r.name %></li>
             <% }); %>
+            <%}%>
         </ul>
         <div id="aylienAnal">
         </div>
         <div id="analysis">
+        </div>
+        <div id="graph">
+        </div>
+        <div id="credits">
         </div>
       </div>
       <div class="box c">

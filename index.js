@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const url = require('url');
 const NewsAPI = require('newsapi');
+const googleTrends = require('google-trends-api');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
 var AYLIENTextAPI = require('aylien_textapi');
@@ -50,7 +51,7 @@ express()
     fetchNewsApi(GOOGLE_NEWS, req.query.q).then(results => { res.send(results) });
   })
   .get('/aylien', (req, res) => {
-    textapi.sentiment({ 'mode': 'document','url': req.query.nurl}, (error, response) => {
+    textapi.sentiment({ 'mode': 'document', 'url': req.query.nurl }, (error, response) => {
       if (error === null) {
         console.log(response);
         //var result = JSON.parse(response);
@@ -61,9 +62,9 @@ express()
         console.log('Aylien error: ' + error);
         throw error('Aylien error: ' + error);
       }
-      
+
     });
-    
+
   })
   .get('/sentiment', (req, res) => {
     fetchDandilion(req.query.nurl).then(results => { res.send(results) });
@@ -71,6 +72,8 @@ express()
   .get('/q', (req, res) => {
     queryAllSources(req.query.q).then(results => { console.log('qAllSrces: returning' + results); res.send(results); });
   })
+  //getInterestOver24hours sends response.
+  .get('/interest', (req, res) => { getInterestOver24hours(req, res) })
   .get('/', async (req, res) => {
     try {
       // putting this back to fetching locations from the db. Although no functionality 
@@ -184,6 +187,7 @@ async function fetchNewsApi(apiUrl, token) {
   } else {
     token = cleanTokenize(token);
     urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
+    console.log('fetchNewsApi: token url is: ', urlStr);
   }
   //urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
   const response = await fetch(urlStr);
@@ -208,7 +212,7 @@ async function queryAllSources(token) {
   await fox;
   // may return a promise object but I don't think so.
   // returning an array of stringified json objects.
-  return [nyt, google, fox ];
+  return [nyt, google, fox];
 }
 
 //newsApi for Fox
@@ -249,6 +253,45 @@ function getNewsApiPoliticalTop10(q) {
   // this may be a promise object
   return response;
 }
+
+// Using the limited Google Trends API to plot popularity
+// I need to rework this from it's now testing stages.
+// the interface expects something like :
+// x: [1, 2, 3, 4, 5]
+// y: [16, 18, 17, 18, 16]
+// the x axis can simply be the index+1
+// which means I need to grab the value at
+// default.timelineData[i].formattedValue[0]
+// while preserving the i+1?
+function getInterestOver24hours(req, res) {
+  var token = req.query.token;
+  var yesterday = new Date(); // yeah, I'm not great with any kind of date ><
+  yesterday = yesterday.setDate(yesterday.getDate() - 1);
+  yesterday = getDateFormatted(yesterday);
+  // google trends - super frustrating and squirlly.
+  googleTrends.interestOverTime({
+    keyword: token,
+    startTime: yesterday,
+    granularTimeResolution: true,
+    timezone: new Date().getTimezoneOffset() / 60,
+  }, (err, results) => {
+    if (err) {
+      console.log('oh no error!', err);
+      throwError(505, 'GoogleTrends Error', err)
+    } else {
+      console.log(results);
+      
+      var data = JSON.parse(results);
+       values = data.default.timelineData.map((value, index) => {
+          return [value.formattedValue[0], value.time];
+        })
+      //}).then(values => {
+        res.send(JSON.stringify(values));
+      //}).catch(err => { throwError(err) });
+    }
+  });
+}
+
 
 // ERROR HANDLING HELPER FUNCTIONS 
 // rewriting everything to handle errors better
@@ -308,7 +351,7 @@ sendError = (res, status, message) => error => {
 }
 
 function cleanTokenize(token, separator) {
-  separator = separator || "+";
+  separator = separator || '+';
   if (!token === undefined) {
     token = token.replace(/[\W_]+/g, separator);
     token = token.endsWith('+') ? token.substr(-1) : token;
@@ -316,3 +359,23 @@ function cleanTokenize(token, separator) {
   return token;
 }
 
+// date helper function to format dates as needd for GoogleTrends API 
+// now using ES2015's default value for parameters
+function getDateFormatted(formatMe = new Date(), sepr8r = '-') {
+  // if undefined, use current date.
+  // formatMe = formatMe || new Date();
+  // sepr8r = sepr8r || '-';
+  if (!(formatMe instanceof Date)) { formatMe = new Date(formatMe);}
+  var dd = formatMe.getDate(); 
+  var mm = formatMe.getMonth() + 1; //Jan is 0
+  var yyyy = formatMe.getFullYear();
+  if (dd < 10) {
+    dd = '0' + dd;
+  }
+  if (mm < 10) {
+    mm = '0' + mm;
+  }
+  // used to return this, but I needed dates. tight coupling much?
+  var formatMe = yyyy + sepr8r + mm + sepr8r + dd;
+  return new Date(formatMe);
+}
