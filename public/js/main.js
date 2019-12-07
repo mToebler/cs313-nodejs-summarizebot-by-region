@@ -17,7 +17,7 @@ function ajaxRequest(ajaxUrl) {
       var results = JSON.parse(data).map((value, index, array) => {
          // expecting an array of arrays here. the 1st value in contained 
          // array: title; the 2nd: its url. return each like so:
-         return "<li><a href='#' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
+         return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
       });
       console.log('returning to: ' + divId + ' this: ' + results + 'derived from: ' + data);
       $(divId).html('<ul>' + results.join('') + '</ul>');
@@ -33,7 +33,9 @@ function ajaxSentimentCheck(byline, ajaxUrl) {
    $('#detail').text('Loading story and analysis.');
    aylienAnalyze(ajaxUrl);
    dandelionAnalyze(ajaxUrl);
-   $('#articleTitle').text("Article: " + byline);
+   $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a>');
+   // adding in getRelatedEntities into this wrapper.
+   getRelatedEntities(ajaxUrl);
 }
 
 function dandelionAnalyze(ajaxUrl) {
@@ -61,8 +63,8 @@ function dandelionAnalyze(ajaxUrl) {
 }
 
 function aylienAnalyze(ajaxUrl) {
-   console.log('Starting Aylien...');
-   $('#aylienAnal').text('Aylien: loading analysis...')
+   console.log('Starting AYLIEN...');
+   $('#aylienAnal').text('AYLIEN: loading analysis...')
    // trying the => function notation
    try {
       $.get('/aylien?nurl=' + ajaxUrl, (data) => {
@@ -72,7 +74,7 @@ function aylienAnalyze(ajaxUrl) {
          .then(response => JSON.parse(response))
          .then(data => {
             console.log(data.polarity);
-            $('#aylienAnal').text('Aylien analysis: ' + data.polarity + ', confidence(' +
+            $('#aylienAnal').text('AYLIEN analysis: ' + data.polarity + ', confidence(' +
                data.polarity_confidence + ')');
             $('#credits').html('Big thanks to <a href="https://aylien.com/">AYLIEN</a> for use of sentiment analysis tools.');
          }).then(
@@ -83,14 +85,32 @@ function aylienAnalyze(ajaxUrl) {
    }
 }
 
+// using function as variable syntax
+getRelatedEntities = (ajaxUrl) => {
+   $.get('/related?nurl=' + ajaxUrl, data => {
+      // remember, the data returns from /related has already been processed for entities
+      // it should be in the format:
+      //[[entityTitle, entityUri],[....], ...]
+      //it's been stringified, prolly need to parse it back into json
+      var values = JSON.parse(data);
+      // problem with terms being returned multiple times when referenced multiple times.
+      // using ECMAScript 6's Set object to get around this since only using the title & not the URI:
+      var distinctValues = [... new Set(values.map((value) => value[0]))];
+      var results = distinctValues.map((value, index) => {
+         if (index < 5) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
+      });
+      $('#related').html('<h5>Related:</h5><ul>' + results.join('') + '</ul>');
+   });
+};
+
 function ajaxPullAll() {
    ajaxRequest('/fox');
    ajaxRequest('/googlenews');
    ajaxRequest('/nyt');
 }
 
-function userSearch() {
-   var qStr = $('#userSearchText').val();
+function userSearch(qStr) {
+   qStr = qStr === undefined? $('#userSearchText').val() : qStr;
    if (qStr.length > 0) {
       // $.get('/q?q='+qStr, (data) => {
       //    console.log(data);
@@ -151,22 +171,7 @@ function graphToken(token) {
 
    });
 }
-   // var trace1 = {
-   //    x: [1, 2, 3, 4],
-   //    y: [10, 15, 13, 17],
-   //    type: 'scatter',
-   //  };
-
-   //  var trace2 = {
-   //    x: [1, 2, 3, 4],
-   //    y: [16, 5, 11, 9],
-   //    type: 'scatter'
-   //  };
-
-   // var data = [trace1, trace2];
-
-   // var layout = {
-   //    title: 'Popularity of ' + token
-   //  };
-
-   // Plotly.newPlot('graph', data, layout);
+let displayHelp = () => {
+   $('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the Search box for token based search and to display a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu</li></ul>');
+   $('#articleTitle').html('<h4>How to use:</h4>');
+};

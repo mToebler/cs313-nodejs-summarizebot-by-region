@@ -11,16 +11,26 @@
    <!-- </div> -->
 	 <div class="wrapper">
 		<div class="box a">
-         <h4 id="articleTitle">Article: 
+         <h4 id="articleTitle">How to use: <a href="javascript:void(0)"> 
+            <span class="glyphicon glyphicon-globe right"></span>
+         </a>
             
          </h4>
          <div id="detail">
             <ul>
-               <li>Load articles from each news source below. Select a headline to see it's content and analysis.</li>
+               <li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li>
+               <li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li>
+               <li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li>
+               <li>4. Use the Search box for token based search and to display a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li>
+               <li>. —————————————————————————————–———————————————————————————— .</li>
+               <li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li>
+               <li>. —————————————————————————————————————————————————————————— .</li>  
             </ul>
+               
          </div>
       </div>
 		<div class="box b">
+         <h4>Analysis:</h4>
          <!-- For tracking: -->
          <ul>
             <%if(false) {%>
@@ -33,6 +43,8 @@
         </div>
         <div id="analysis">
         </div>
+        <div id="related">
+         </div>
         <div id="graph">
         </div>
         <div id="credits">
@@ -40,7 +52,7 @@
       </div>
       <div class="box c">
          <h4>Fox News:
-            <a href="#" onclick="ajaxRequest('/fox')"> 
+            <a href="javascript:void(0)" onclick="ajaxRequest('/fox')"> 
                <span class="glyphicon glyphicon-refresh right"></span>
             </a>
          </h4>
@@ -52,7 +64,7 @@
       </div>
       <div class="box d">
             <h4>NYTimes:
-               <a href="#" onclick="ajaxRequest('/nyt')"> 
+               <a href="javascript:void(0)" onclick="ajaxRequest('/nyt')"> 
                   <span class="glyphicon glyphicon-refresh right"></span>
                </a>
             </h4>
@@ -62,7 +74,7 @@
       </div>
       <div class="box e">
          <h4>Google News:
-            <a href="#" onclick="ajaxRequest('/googlenews')"> 
+            <a href="javascript:void(0)" onclick="ajaxRequest('/googlenews')"> 
                <span class="glyphicon glyphicon-refresh right"></span>
             </a>
          </h4>

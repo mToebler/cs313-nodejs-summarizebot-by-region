@@ -2,21 +2,23 @@
   <div class="container">
     <ul class="nav navbar-nav">
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon"></span>Drop Down Control
-          Menu<span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-menu-down padRight"></span>Control
+          Menu</a>
         <ul class="dropdown-menu" role="menu">
-          <li onclick="ajaxRequest('/nyt')"><a href="#">Pull latest from NYTimes</a></li>
-          <li onclick="ajaxRequest('/googlenews')"><a href="#">Pull latest from Google News</a></li>
-          <li onclick="ajaxRequest('/fox')"><a href="#">Pull latest from Fox News</a></li>
+          <li onclick="ajaxRequest('/nyt')"><a href="javascript:void(0)">Pull latest from NYTimes</a></li>
+          <li onclick="ajaxRequest('/googlenews')"><a href="javascript:void(0)">Pull latest from Google News</a></li>
+          <li onclick="ajaxRequest('/fox')"><a href="javascript:void(0)">Pull latest from Fox News</a></li>
           <li class="divider"></li>
-          <li onclick="ajaxPullAll()"><a href="#">Pull latest from ALL sources</a></li>
+          <li onclick="ajaxPullAll()"><a href="javascript:void(0)">Pull latest from ALL sources</a></li>
+          <li class="divider"></li>
+          <li onclick="displayHelp()"><a href="javascript:void(0)">Help</a></li>
         </ul>
       </li>
       <li>
-        <a href="/">Regional Real Time News Tracker<span class="glyphicon glyphicon-minus"></span>RR-TNT</a>
+        <a href="/"><span class="glyphicon glyphicon-home padRight padLeft"></span>Real&mdash;Time News Tracker</a>
       </li>
       <li>
-        <a href="#"><img id="logo" src="img/R-TNT_fitd.png"></a>
+        <a href="javascript:void(0)"><img id="logo" src="img/R-TNT_fitd.png" onclick="displayHelp()"></a>
       </li>
     </ul>
     <ul class="nav navbar-nav ">

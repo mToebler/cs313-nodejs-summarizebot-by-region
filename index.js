@@ -6,7 +6,8 @@ const googleTrends = require('google-trends-api');
 var Promise = require('promise/lib/es6-extensions');
 const fetch = require('isomorphic-fetch');
 var AYLIENTextAPI = require('aylien_textapi');
-const { NEWS_URLS, GOOGLE_NEWS, FOX_NEWS } = require('./middleware/constants');
+const { SEARCH_NEWS_URLS, NEWS_URLS, GOOGLE_NEWS,
+  FOX_NEWS, DANDE_ENTITY_ENDPOINT } = require('./middleware/constants');
 
 // parsing env variables
 // these consts should be in ALL_CAPS
@@ -69,6 +70,7 @@ express()
   .get('/sentiment', (req, res) => {
     fetchDandilion(req.query.nurl).then(results => { res.send(results) });
   })
+  .get('/related', (req, res) => { getRelatedEntities(req, res) })
   .get('/q', (req, res) => {
     queryAllSources(req.query.q).then(results => { console.log('qAllSrces: returning' + results); res.send(results); });
   })
@@ -140,6 +142,7 @@ async function getNyTimesMostViewed(token) {
   return JSON.stringify(titles);
 }
 
+
 async function fetchDandilion(nurl) {
   var fetchStr = 'https://api.dandelion.eu/datatxt/sent/v1/?lang=en&url=' + nurl + '&token=' + dandAPI;
   const results = await fetch(fetchStr);
@@ -185,11 +188,10 @@ async function fetchNewsApi(apiUrl, token) {
   if (token === undefined) {
     urlStr = NEWS_URLS[apiUrl][1];
   } else {
-    token = cleanTokenize(token);
-    urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
+    token = encodeURIComponent(token);
+    urlStr = SEARCH_NEWS_URLS[apiUrl][1] + '&q=' + token;
     console.log('fetchNewsApi: token url is: ', urlStr);
   }
-  //urlStr = NEWS_URLS[apiUrl][1] + '&q=' + token;
   const response = await fetch(urlStr);
   if (response.status >= 400) {
     throw new Error("Bad response from server");
@@ -204,6 +206,7 @@ async function fetchNewsApi(apiUrl, token) {
 }
 
 async function queryAllSources(token) {
+  if(token) token = encodeURIComponent(token);
   const nyt = getNyTimesMostViewed(token);
   const google = fetchNewsApi(GOOGLE_NEWS, token);
   const fox = fetchNewsApi(FOX_NEWS, token);
@@ -255,20 +258,24 @@ function getNewsApiPoliticalTop10(q) {
 }
 
 // Using the limited Google Trends API to plot popularity
-// I need to rework this from it's now testing stages.
-// the interface expects something like :
-// x: [1, 2, 3, 4, 5]
+// This has been reworked from it's testing stages to now
+// use the timestamp associated with each score with
+// plot.ly's graphing library to display and tick
+// dates along the x-axis.
+// the client side expects something like :
+// x: [1575594220, 1575594230, 1575594240, 1575594254, 1575594269]
 // y: [16, 18, 17, 18, 16]
-// the x axis can simply be the index+1
-// which means I need to grab the value at
+// the x axis timestamps will be mulitplied by 1000 client side.
+// which means for y I need to grab the value at
 // default.timelineData[i].formattedValue[0]
-// while preserving the i+1?
+// while preserving the timestamp.
 function getInterestOver24hours(req, res) {
+  //written without the use of async or await.
   var token = req.query.token;
   var yesterday = new Date(); // yeah, I'm not great with any kind of date ><
   yesterday = yesterday.setDate(yesterday.getDate() - 1);
   yesterday = getDateFormatted(yesterday);
-  // google trends - super frustrating and squirlly.
+  // google trends - frustrating and squirlly.
   googleTrends.interestOverTime({
     keyword: token,
     startTime: yesterday,
@@ -276,11 +283,10 @@ function getInterestOver24hours(req, res) {
     timezone: new Date().getTimezoneOffset() / 60,
   }, (err, results) => {
     if (err) {
-      console.log('oh no error!', err);
-      throwError(505, 'GoogleTrends Error', err)
+      console.log('getInterestOver24hours Error: ', err);
+      throwError(505, 'getInterestOver24hours Error', err)
     } else {
-      console.log(results);
-      
+      //console.log(results);
       var data = JSON.parse(results);
        values = data.default.timelineData.map((value, index) => {
           return [value.formattedValue[0], value.time];
@@ -292,6 +298,30 @@ function getInterestOver24hours(req, res) {
   });
 }
 
+// writing this new fangled JS style.
+getRelatedEntities = (req, res) => {
+  // the idea is to query dandelion's entity extraction endpoint api
+  // to pull out the topics involved. I'm using dandelion and not one 
+  // of the others as it is free at 1000 requests per day and doesn't
+  // expire.
+  // get the newsUrl (nurl) from the request:
+  var nurl = req.query.nurl;
+  // query string:
+  var fetchStr = DANDE_ENTITY_ENDPOINT + '&url=' + nurl + '&token=' + dandAPI;
+  fetch(fetchStr).then(results => {
+    return results.json();
+  }).then(data => {
+    console.log('getRelatedEntities results.json(): ', data);
+    values = data.annotations.map(
+      (value) => {
+        return [value.title, value.uri]
+      });
+    res.send(JSON.stringify(values));
+  }).catch(err => { 
+    console.log('getRelatedEntities Error: + ', err);
+    throwError(505, err.name, err.message);
+  });  
+}
 
 // ERROR HANDLING HELPER FUNCTIONS 
 // rewriting everything to handle errors better

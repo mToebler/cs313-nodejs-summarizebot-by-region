@@ -46,11 +46,16 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
 .wrapper {
   display: grid;
   grid-gap: 5px;
-  grid-template-columns: 25% 25% 25% 24%;
-  grid-template-rows: 21rem 15rem 15rem;
+  grid-template-columns: 24% 24% 24% 27%;
+  grid-template-rows: 30rem 15rem 15rem;
   background-color: #ededed;
   color: #444;
   margin: .25rem;
+}
+@media (min-width: 768px) {
+  .navbar {
+    max-height: 6.5rem;
+  }
 }
 .navbar {
   margin-bottom: 3px;
@@ -91,6 +96,21 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
   color: #ced882;
   transition: ease color .25s;
 }
+ul {
+  padding: 2px;
+  padding-left: 1.6rem;
+  list-style-type: none;
+  /* list-style-position: inside; */
+  text-indent: -0.8rem;
+}
+li>a>img {
+  max-width: 80px !important;
+  filter: invert(100%);
+}
+
+#related ul {
+  font-size: 1rem;
+}
 
 .a {
   grid-column: 1 / span 3;
@@ -112,33 +132,32 @@ font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
   grid-column: 3 ;
   grid-row: 2 /span 2 ;
 }
-ul {
-  padding: 2px;
-  padding-left: 1.6rem;
-  list-style-type: none;
-  /* list-style-position: inside; */
-  text-indent: -0.8rem;
-}
-li>a>img {
-  max-width: 80px !important;
-  filter: invert(100%);
-}
 
 h4 {
   font-size: 1.5rem;
 }
+
+
+.a h4, .b h4 {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
 .c h4 {
-  font-family: 'Encode Sans Condensed', sans-serif; /*fox*/
+  font-family: 'Encode Sans Condensed', sans-serif; /*fox news*/
   font-variant-caps: small-caps;
 }
 
-.e h4 {
-  font-family: 'Montserrat', sans-serif;
+.d h4 {
+  font-family: 'Neuton', serif; /*NYTimes*/
 }
 
-.d h4 {
-  font-family: 'Neuton', serif;
+.e h4 {
+  font-family: 'Montserrat', sans-serif; /*Google News*/
 }
+.b h5 {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
 
 #detail {
   font-size: 1.4rem;
@@ -159,7 +178,15 @@ body {
 .small {
   max-width: 88%;
 }
-
+.smaller-text {
+  font-size: smaller;
+}
+.padLeft {
+  padding-left: 1rem;;
+}
+.padRight {
+  padding-right: 1rem;;
+}
 .noContent {
   font-size: 1.5rem;
   padding: 22%;
@@ -174,7 +201,6 @@ body {
 #credits {
   font-size: .9rem;
   padding: 1rem .5rem;
-  display: 
 }
 #credits a {
   color:#ced882;
@@ -182,4 +208,10 @@ body {
 #credits a:hover {
   color:#82B1D8;
   transition: ease color .5s;
+}
+.menu-font {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+.standout {
+  color:#ced882;
 }
