@@ -76,13 +76,48 @@ express()
   })
   //getInterestOver24hours sends response.
   .get('/interest', (req, res) => { getInterestOver24hours(req, res) })
+  .get('/saveArticle', async (req, res) => {
+    try {
+      var nurl = req.query.nurl;
+      var headline = req.query.headline;
+      const client = await pool.connect();
+      const result = await client.query("insert into articles (headline, uri) values('" + encodeURIComponent(headline) + "', '" + encodeURI(nurl) + "')");
+      const results = {
+        'results': (result) ? result.rows : null
+      };
+      console.log('/saveArticle results:', results);
+      //res.render('partials/nav', results);
+      client.release();
+      res.send({ status: '200', newId: 'NULL' });
+    } catch (err) {
+      console.error('/saveArticle Error: ', err);
+      res.send({ status: '505', error: err });
+    }
+  })
+  .get('/removeArticle', async (req, res) => {
+    try {
+      var nurl = req.query.nurl;
+      const client = await pool.connect();
+      const result = await client.query("delete from articles where uri = '" + encodeURI(nurl) + "'");
+      const results = {
+        'results': (result) ? result.rows : null
+      };
+      console.log('/removeArticle results:', results);
+      client.release();
+      res.send({ status: '200', message: 'Deleted' });
+    } catch (err) {
+      console.error('/saveArticle Error: ', err);
+      res.send({ status: '505', error: err });
+    }
+  })
   .get('/', async (req, res) => {
     try {
       // putting this back to fetching locations from the db. Although no functionality 
       // is associated with them yet.
 
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM location');
+      //const result = await client.query('SELECT * FROM location');
+      const result = await client.query('SELECT * FROM articles WHERE saved = true');
       const results = {
         'results': (result) ? result.rows : null
       };
@@ -206,7 +241,7 @@ async function fetchNewsApi(apiUrl, token) {
 }
 
 async function queryAllSources(token) {
-  if(token) token = encodeURIComponent(token);
+  if (token) token = encodeURIComponent(token);
   const nyt = getNyTimesMostViewed(token);
   const google = fetchNewsApi(GOOGLE_NEWS, token);
   const fox = fetchNewsApi(FOX_NEWS, token);
@@ -288,11 +323,11 @@ function getInterestOver24hours(req, res) {
     } else {
       //console.log(results);
       var data = JSON.parse(results);
-       values = data.default.timelineData.map((value, index) => {
-          return [value.formattedValue[0], value.time];
-        })
+      values = data.default.timelineData.map((value, index) => {
+        return [value.formattedValue[0], value.time];
+      })
       //}).then(values => {
-        res.send(JSON.stringify(values));
+      res.send(JSON.stringify(values));
       //}).catch(err => { throwError(err) });
     }
   });
@@ -317,10 +352,10 @@ getRelatedEntities = (req, res) => {
         return [value.title, value.uri]
       });
     res.send(JSON.stringify(values));
-  }).catch(err => { 
+  }).catch(err => {
     console.log('getRelatedEntities Error: + ', err);
     throwError(505, err.name, err.message);
-  });  
+  });
 }
 
 // ERROR HANDLING HELPER FUNCTIONS 
@@ -395,8 +430,8 @@ function getDateFormatted(formatMe = new Date(), sepr8r = '-') {
   // if undefined, use current date.
   // formatMe = formatMe || new Date();
   // sepr8r = sepr8r || '-';
-  if (!(formatMe instanceof Date)) { formatMe = new Date(formatMe);}
-  var dd = formatMe.getDate(); 
+  if (!(formatMe instanceof Date)) { formatMe = new Date(formatMe); }
+  var dd = formatMe.getDate();
   var mm = formatMe.getMonth() + 1; //Jan is 0
   var yyyy = formatMe.getFullYear();
   if (dd < 10) {

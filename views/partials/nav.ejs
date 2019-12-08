@@ -2,7 +2,8 @@
   <div class="container">
     <ul class="nav navbar-nav">
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-menu-down padRight"></span>Control
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span
+            class="glyphicon glyphicon-menu-down padRight"></span>Control
           Menu</a>
         <ul class="dropdown-menu" role="menu">
           <li onclick="ajaxRequest('/nyt')"><a href="javascript:void(0)">Pull latest from NYTimes</a></li>
@@ -19,6 +20,19 @@
       </li>
       <li>
         <a href="javascript:void(0)"><img id="logo" src="img/R-TNT_fitd.png" onclick="displayHelp()"></a>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> 
+          <span class="glyphicon glyphicon-floppy-disk padRight"></span>Saved Articles</a>
+        <ul id="savedArticlesUL" class="dropdown-menu" role="menu">
+          <li onclick="displayHelp()"><a href="javascript:void(0)">R-TNT Directions and Help</a></li>          
+          <li class="divider"></li>
+          <% results.forEach(function(r) { 
+            // still headline and url are still encoded 
+          %>        
+           <li id='saved-<%=r.uri.replace(/\W+/g, '')%>' onclick='loadArticle("<%= decodeURIComponent(r.headline) %>","<%= decodeURI(r.uri)%>", <%=r.article_id%>)'><a href="javascript:void(0)"><%= decodeURIComponent(r.headline) %></a></li>
+         <% }); %>  
+        </ul>
       </li>
     </ul>
     <ul class="nav navbar-nav ">

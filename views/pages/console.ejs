@@ -7,12 +7,14 @@
 
  <body>
     <!-- <div class="container"> -->
-      <% include ../partials/nav.ejs %>
+      <%- include('../partials/nav.ejs', {results: results}) %>
    <!-- </div> -->
 	 <div class="wrapper">
 		<div class="box a">
          <h4 id="articleTitle">How to use: <a href="javascript:void(0)"> 
+            
             <span class="glyphicon glyphicon-globe right"></span>
+            <span class="glyphicon glyphicon-floppy-disk right padRight"></span>
          </a>
             
          </h4>
@@ -21,7 +23,9 @@
                <li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li>
                <li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li>
                <li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li>
-               <li>4. Use the Search box for token based search and to display a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li>
+               <li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li>
+               <li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li>
+               <li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li>
                <li>. —————————————————————————————–———————————————————————————— .</li>
                <li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li>
                <li>. —————————————————————————————————————————————————————————— .</li>  
@@ -57,9 +61,7 @@
             </a>
          </h4>
          <div id="fox">
-            <ul>
-               <li onclick="ajaxRequest('/fox')">Nothing displayed</li>
-            </ul>
+               <div class="noContent">use <span class="glyphicon glyphicon-refresh"></span> for content</div>
          </div>
       </div>
       <div class="box d">
@@ -69,7 +71,7 @@
                </a>
             </h4>
          <div id="nyt">
-            <div class="noContent">refresh for content</div>
+            <div class="noContent">use <span class="glyphicon glyphicon-refresh"></span> for content</div>
          </div>
       </div>
       <div class="box e">
@@ -79,9 +81,7 @@
             </a>
          </h4>
          <div id="googlenews">
-            <ul>
-                <li onclick="ajaxRequest('/googlenews')">Click to update</li>
-            </ul>
+               <div class="noContent">use <span class="glyphicon glyphicon-refresh"></span> for content</div>
          </div>
       </div>
 

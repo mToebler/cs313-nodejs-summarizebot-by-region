@@ -29,11 +29,15 @@ function ajaxRequest(ajaxUrl) {
 // Two sentiment checks are (to be) done dandelion (free for students) 
 // and Alyen (two week trial key limited to 1000 'units'/24 hrs). 
 // we don't want to do this on the client side to keep key secure.
-function ajaxSentimentCheck(byline, ajaxUrl) {
+function ajaxSentimentCheck(byline, ajaxUrl, articleId) {
    $('#detail').text('Loading story and analysis.');
    aylienAnalyze(ajaxUrl);
    dandelionAnalyze(ajaxUrl);
-   $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a>');
+   if (articleId) {
+      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'removeArticle("' + ajaxUrl + '")\'><span class="glyphicon glyphicon-floppy-remove right padRight"></span></a>');
+   } else {
+      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'saveArticle("' + ajaxUrl + '", "'+byline+'")\'><span class="glyphicon glyphicon-floppy-disk right padRight"></span></a>');
+   }
    // adding in getRelatedEntities into this wrapper.
    getRelatedEntities(ajaxUrl);
 }
@@ -57,8 +61,11 @@ function dandelionAnalyze(ajaxUrl) {
             ' ' + (JSON.stringify(data.sentiment.type)));
          // getting ridiculous results here
          //replace(/(\\){1}(n){1}/, '');
-         var detailText = JSON.stringify(data.text);
-         $('#detail').text(detailText + " -- Original article: " + ajaxUrl);
+         
+         var detailText = JSON.stringify(data.text).replace(/\\n/g, ' ');
+         detailText = detailText.substr(1, detailText.length);
+         //$('#detail').text(detailText + " -- Original article: " + ajaxUrl);
+         $('#detail').html(detailText + "<br> <span class='OEMArticle'> --Original article: " + ajaxUrl + ' </span>');
       });
 }
 
@@ -172,6 +179,61 @@ function graphToken(token) {
    });
 }
 let displayHelp = () => {
-   $('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the Search box for token based search and to display a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu</li></ul>');
+   $('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li><li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>. —————————————————————————————–———————————————————————————— .</li><li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li><li>. —————————————————————————————————————————————————————————— .</li></ul>');
    $('#articleTitle').html('<h4>How to use:</h4>');
 };
+
+//just a wrapper for ajaxSentimentCheck. adding in functionality there.
+loadArticle = (headline, uri, articleId) => {
+   articleId = articleId === undefined ? false : articleId;
+   ajaxSentimentCheck(headline, uri, articleId);
+}
+
+//saveArticle & removeArticle
+// save needs to make a request to the server with the following info:
+// url, headline. 
+// once saved, the floppy will turn into a check mark and the menu updated
+saveArticle = (uri, headline) => {
+   $.get('/saveArticle?nurl=' + encodeURIComponent(uri) + '&headline=' + encodeURIComponent(headline), data => {
+      if (data.status == 200) {
+         $('#articleTitle').html('Article: ' + headline + '<a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'><span class="glyphicon glyphicon-floppy-saved right padRight"></span></a>');
+         // now to update the menu
+         //savedArticlesUL <li id='saved-<%=r.article_id%>' onclick='loadArticle("<%= r.headline %>","<%=r.uri%>", <%=r.article_id%>)'><a href="javascript:void(0)"><%= r.headline %></a></li>
+         $('#savedArticlesUL').append('<li id="saved-'+ normalizeSelector(uri)+ '" onclick=\'loadArticle("' + headline + '","' + uri + '", ' + '-1' + ')\'><a href="javascript:void(0)">' + headline + '</a></li>');
+      } else {
+         console.error('saveArticle Error: ', data.error);
+         $('#articleTitle').html('Article: ' + headline + ': (previously saved) <a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'><span class="glyphicon glyphicon-floppy-saved right padRight"></span></a>');
+         //alert('problem' + data.error);
+      }
+   });
+}
+
+//removeArticle
+// makes a request to the server with the following info:
+// url: the natural key of the article 
+// once removed from cloud's database, the nav menu needs to either be regenerated or simply that element node <li> can simply be deleted.
+removeArticle = (articleUrl) => {
+   $.get('/removeArticle?nurl=' + encodeURIComponent(articleUrl), response => {
+      if (response.status == 200) {
+         // url encoded?
+         selectorStr = '#saved-' + normalizeSelector(articleUrl);
+         console.log('removeArticle: selectorStr: ' + selectorStr);
+         $(selectorStr).remove();
+         var htmlStr = $('#articleTitle').html();
+         var index = htmlStr.indexOf("removeArticle") - 38;
+         console.log('removeArticle: htmlStr is: ' + htmlStr);
+         console.log('removeArticle: index is: ' + index);
+         $('#articleTitle').html(htmlStr.substring(0, index));
+      } else {
+         alert('Article not removed' + response);
+      }
+   })
+}
+
+normalizeSelector = (selector) => {
+   if (selector && selector.length > 0) {
+      return selector.replace(/\W+/g, '');
+   } else {
+      return null;
+   }
+}
