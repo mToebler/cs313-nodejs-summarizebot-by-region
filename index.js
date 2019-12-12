@@ -1,3 +1,13 @@
+/* things to do this week:
+    - organize code into included module
+done- use only the 6 highest rated related terms (if exist)
+    - add media to articles
+    - use highest ranking related term for a graph.
+    - consider animation while waiting
+    - error handling!!!
+    - allowing the third source spot (Google) to be configured from a list?
+    - superfluous " showing up at the end of video and NYTimes articles
+*/
 const express = require('express');
 const path = require('path');
 const url = require('url');
@@ -52,7 +62,7 @@ express()
     fetchNewsApi(GOOGLE_NEWS, req.query.q).then(results => { res.send(results) });
   })
   .get('/aylien', (req, res) => {
-    textapi.sentiment({ 'mode': 'document', 'url': req.query.nurl }, (error, response) => {
+    textapi.sentiment({ 'mode': 'document', 'url': encodeURI(req.query.nurl) }, (error, response) => {
       if (error === null) {
         console.log(response);
         //var result = JSON.parse(response);
@@ -60,8 +70,14 @@ express()
         console.log(result);
         res.send(result);
       } else {
-        console.log('Aylien error: ' + error);
-        throw error('Aylien error: ' + error);
+        console.error(`Aylien error: ${error}`);
+        // throw Error('Aylien error: ' + error);
+        var sentiment = { "polarity":"Not analyzed","polarity_confidence":"Problem in text" }
+        console.log('Sending error sentiment (strfy): ' + JSON.stringify(sentiment));
+        //console.log('Sending error sentiment (parsed)' + JSON.parse(sentiment));
+        sentiment = JSON.stringify(sentiment);
+        console.log(sentiment)
+        res.send(sentiment);
       }
 
     });
@@ -278,6 +294,7 @@ async function getNewsApiPopularFox() {
 }
 
 //newsApi returns top headlines for a query string if provided.
+// deprecated for fetchNewsAPI(APIURL)
 function getNewsApiPoliticalTop10(q) {
   newsapi.v2.topHeadlines({
     q: q == null ? '' : q,
@@ -349,7 +366,8 @@ getRelatedEntities = (req, res) => {
     console.log('getRelatedEntities results.json(): ', data);
     values = data.annotations.map(
       (value) => {
-        return [value.title, value.uri]
+        // replacing uri with confidence score. 
+        return [value.title, value.confidence]
       });
     res.send(JSON.stringify(values));
   }).catch(err => {

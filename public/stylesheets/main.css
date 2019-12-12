@@ -267,3 +267,7 @@ body {
   font-style: italic;
   font-size: 1rem;
 }
+
+.display-content {
+  display: initial;
+}
