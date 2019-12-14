@@ -6,7 +6,10 @@ done- use only the 6 highest rated related terms (if exist)
     - consider animation while waiting
     - error handling!!!
     - allowing the third source spot (Google) to be configured from a list?
-    - superfluous " showing up at the end of video and NYTimes articles
+    - superfluous " showing up at the end of video and NYTimes articles - this 
+      seems to be happening with all articles, just noticed more in the videos. Check if the last
+      char is a ", if it is trim it? Something may be happening with the json to make that be sticking
+      out like that.
 */
 const express = require('express');
 const path = require('path');

@@ -14,7 +14,7 @@ const SEARCH_NEWS_URLS = [
 const GOOGLE_NEWS = 0;
 const FOX_NEWS = 1;
 
-const DANDE_ENTITY_ENDPOINT = 'https://api.dandelion.eu/datatxt/nex/v1/?lang=en&min_confidence=0.85&top_entities=3&min_length=4';
+const DANDE_ENTITY_ENDPOINT = 'https://api.dandelion.eu/datatxt/nex/v1/?lang=en&min_confidence=0.80&top_entities=3&min_length=4';
 
 module.exports = {
    SEARCH_NEWS_URLS, NEWS_URLS, GOOGLE_NEWS, FOX_NEWS, DANDE_ENTITY_ENDPOINT

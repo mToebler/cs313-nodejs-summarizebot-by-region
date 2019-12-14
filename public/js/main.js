@@ -69,8 +69,9 @@ function dandelionAnalyze(ajaxUrl) {
          //replace(/(\\){1}(n){1}/, '');
          // getting \n and \\n in some results.
          var detailText = JSON.stringify(data.text).replace(/\\n/g, ' ').replace(/\n/g, ' ').replace(/\\"/g, '&quot;');
-         detailText = detailText.substr(1, detailText.length);
+         detailText = detailText.substr(1, detailText.length - 2);
          //$('#detail').text(detailText + " -- Original article: " + ajaxUrl);
+         console.log("dandeLionAnalyze: detailText : ", detailText);
          $('#detail').html(detailText + "<br> <span class='OEMArticle'> --Original article: " + ajaxUrl + ' </span>');
       });
 }
@@ -116,7 +117,7 @@ getRelatedEntities = (ajaxUrl) => {
       // using ECMAScript 6's spread operator and Set class to get around this:
       var distinctValues = [... new Set(values.map((value) => value[0]))];
       var results = distinctValues.map((value, index) => {
-         if (index < 5) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
+         if (index < 6) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
       });
       $('#related').html('<h5>Related:</h5><ul>' + results.join('') + '</ul>');
    });
