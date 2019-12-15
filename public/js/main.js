@@ -4,13 +4,18 @@ const FLOPPY_REMOVE = '<span class="glyphicon glyphicon-floppy-remove right padR
 const FLOPPY = '<span class="glyphicon glyphicon-floppy-disk right padRight"></span>';
 
 // brought over from the cs313 GOp project. Detects if return is pressed for search.
-$(function () {
+$(function() {
    $('#userSearchText').on('keyup', function (e) {
       if (e.keyCode === 13) {
          userSearch();
       };
    });
 });
+
+// load trending searches
+$(function () {
+   loadTrends();
+})
 
 // ajaxRequest launches a deceiptively simple looking jquery ajax request
 // based on the url based in as an argument, then changes the contents
@@ -40,9 +45,9 @@ function ajaxSentimentCheck(byline, ajaxUrl, articleId) {
    dandelionAnalyze(ajaxUrl);
    // if an articleId is passed in, then display the remove floppy
    if (articleId) {
-      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'removeArticle("' + ajaxUrl + '")\'>' + FLOPPY_REMOVE +'</a>');
+      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'removeArticle("' + ajaxUrl + '")\'>' + FLOPPY_REMOVE + '</a>');
    } else {
-      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'saveArticle("' + ajaxUrl + '", "'+byline+'")\'>' + FLOPPY +'</span></a>');
+      $('#articleTitle').html('Article: ' + byline + '<a href="' + ajaxUrl + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'saveArticle("' + ajaxUrl + '", "' + byline + '")\'>' + FLOPPY + '</span></a>');
    }
    // adding in getRelatedEntities into this wrapper.
    getRelatedEntities(ajaxUrl);
@@ -101,6 +106,7 @@ function aylienAnalyze(ajaxUrl) {
 
 // using function as variable syntax
 getRelatedEntities = (ajaxUrl) => {
+   //let distinctValues = [];
    $.get('/related?nurl=' + ajaxUrl, data => {
       // remember, the data returns from /related has already been processed for entities
       // it should be in the format:
@@ -120,6 +126,10 @@ getRelatedEntities = (ajaxUrl) => {
          if (index < 6) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
       });
       $('#related').html('<h5>Related:</h5><ul>' + results.join('') + '</ul>');
+      // let's fire off a graph of the top RelatedEntity if it exists
+      if (distinctValues[0].length > 0) {
+         graphToken(distinctValues[0]);
+      }         
    });
 };
 
@@ -144,7 +154,7 @@ function ajaxPullAll() {
 }
 
 function userSearch(qStr) {
-   qStr = qStr === undefined? $('#userSearchText').val() : qStr;
+   qStr = qStr === undefined ? $('#userSearchText').val() : qStr;
    if (qStr.length > 0) {
       // $.get('/q?q='+qStr, (data) => {
       //    console.log(data);
@@ -182,7 +192,7 @@ function graphToken(token) {
       console.log('popularity: ', JSON.stringify(popularity));
       var data = [popularity];
       var layout = {
-         title: 'Recent Popularity of ' + token,
+         title: 'Recent Relative Popularity of ' + token,
          plot_bgcolor: '#444',
          paper_bgcolor: '#262626',
          height: '350',
@@ -205,8 +215,32 @@ function graphToken(token) {
 
    });
 }
+
+function loadTrends(trendDate) {
+   var tUrl = '/trends';
+   if (trendDate) {
+      tUrl = tUrl + '?trendDate=' + trendDate;
+   } 
+   
+   $.get(tUrl, results => { 
+      console.log('loadTrends: received: ', results);
+      let values = JSON.parse(results);
+      //[[term, popularity][term, popularity]]
+      // i believe values is ready to go, just needs formatting
+      let trends = values.map(value => {
+         //return '<li onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: ' + value[1] + '</li>';
+         return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
+      });
+      //$('#trending').html('<h5>Currently Trending:</h5><ul>' + trends.join('') + '</ul>');
+      var fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
+      $('#trendingContent').html(trends.join('') + fillerDiv + fillerDiv);      
+   })
+}
+
 let displayHelp = () => {
-   $('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li><li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>. —————————————————————————————–———————————————————————————— .</li><li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li><li>. —————————————————————————————————————————————————————————— .</li></ul>');
+   //$('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li><li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>. —————————————————————————————–———————————————————————————— .</li><li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li><li>. —————————————————————————————————————————————————————————— .</li></ul>');
+   $('#detail').html('<ul><li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box below or from the <span class="boxHeader">Control Menu</span> above .</li><li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"    onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>   will load in the <span class="boxHeader">Analysis</span> box to the right.</li><li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li><li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li><li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li><li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>8. <span class="boxHeader">Trending Searches</span> load headlines and popularity graph when clicked</li><li> &nbsp;</li><li>. ————————————————————————————————————————————————————— .</li><li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li><li>. ————————————————————————————————————————————————————— .</li></ul>');
+
    $('#articleTitle').html('<h4>How to use:</h4>');
 };
 
@@ -223,13 +257,13 @@ loadArticle = (headline, uri, articleId) => {
 saveArticle = (uri, headline) => {
    $.get('/saveArticle?nurl=' + encodeURIComponent(uri) + '&headline=' + encodeURIComponent(headline), data => {
       if (data.status == 200) {
-         $('#articleTitle').html('Article: ' + headline + '<a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'>' + FLOPPY_SAVED +'</a>');
+         $('#articleTitle').html('Article: ' + headline + '<a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'>' + FLOPPY_SAVED + '</a>');
          // now to update the menu
          //savedArticlesUL <li id='saved-<%=r.article_id%>' onclick='loadArticle("<%= r.headline %>","<%=r.uri%>", <%=r.article_id%>)'><a href="javascript:void(0)"><%= r.headline %></a></li>
-         $('#savedArticlesUL').append('<li id="saved-'+ normalizeSelector(uri)+ '" onclick=\'loadArticle("' + headline + '","' + uri + '", ' + '-1' + ')\'><a href="javascript:void(0)">' + headline + '</a></li>');
+         $('#savedArticlesUL').append('<li id="saved-' + removeSpecialChars(uri) + '" onclick=\'loadArticle("' + headline + '","' + uri + '", ' + '-1' + ')\'><a href="javascript:void(0)">' + headline + '</a></li>');
       } else {
          console.error('saveArticle Error: ', data.error);
-         $('#articleTitle').html('Article: ' + headline + ': (previously saved) <a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'>' + FLOPPY_SAVED +'</a>');
+         $('#articleTitle').html('Article: ' + headline + ': (previously saved) <a href="' + uri + '" target="_blank"><span class="glyphicon glyphicon-globe right"></span></a><a href=\'javascript:void(0)\' onclick=\'alert("' + headline + ' has been saved. To remove, select it from the Saved Articles drop-down menu and click remove. This is to prevent inadvertent and repeated deletion and insertion.")\'>' + FLOPPY_SAVED + '</a>');
          //alert('problem' + data.error);
       }
    });
@@ -243,7 +277,7 @@ removeArticle = (articleUrl) => {
    $.get('/removeArticle?nurl=' + encodeURIComponent(articleUrl), response => {
       if (response.status == 200) {
          // url encoded?
-         selectorStr = '#saved-' + normalizeSelector(articleUrl);
+         selectorStr = '#saved-' + removeSpecialChars(articleUrl);
          console.log('removeArticle: selectorStr: ' + selectorStr);
          $(selectorStr).remove();
          var htmlStr = $('#articleTitle').html();
@@ -257,7 +291,10 @@ removeArticle = (articleUrl) => {
    })
 }
 
-normalizeSelector = (selector) => {
+// helper function to remove anything that isn't a word character
+// Note: by using this arrow syntax => this function has no prototype to 
+// fall back on.
+removeSpecialChars = (selector) => {
    if (selector && selector.length > 0) {
       return selector.replace(/\W+/g, '');
    } else {

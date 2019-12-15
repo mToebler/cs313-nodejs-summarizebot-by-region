@@ -1,12 +1,20 @@
 /* things to do this week:
+    --------------------------------
+    - !!!!!!!!!!!!!!!!!!!!!!!!!!!! -
+    - GoogleTrendsAPI Daily Trends -
+    -  Integrate it into Analysis  -
+    -      when first loaded       -
+    - !!!!!!!!!!!!!!!!!!!!!!!!!!!! -
+    --------------------------------
+    - consider using InterestByRegion (GTrends)
     - organize code into included module
 done- use only the 6 highest rated related terms (if exist)
     - add media to articles
-    - use highest ranking related term for a graph.
+    - use highest ranking related term for a graph on article load?
     - consider animation while waiting
     - error handling!!!
     - allowing the third source spot (Google) to be configured from a list?
-    - superfluous " showing up at the end of video and NYTimes articles - this 
+done- superfluous " showing up at the end of video and NYTimes articles - this 
       seems to be happening with all articles, just noticed more in the videos. Check if the last
       char is a ", if it is trim it? Something may be happening with the json to make that be sticking
       out like that.
@@ -75,7 +83,7 @@ express()
       } else {
         console.error(`Aylien error: ${error}`);
         // throw Error('Aylien error: ' + error);
-        var sentiment = { "polarity":"Not analyzed","polarity_confidence":"Problem in text" }
+        var sentiment = { "polarity": "Not analyzed", "polarity_confidence": "Problem in text" }
         console.log('Sending error sentiment (strfy): ' + JSON.stringify(sentiment));
         //console.log('Sending error sentiment (parsed)' + JSON.parse(sentiment));
         sentiment = JSON.stringify(sentiment);
@@ -95,6 +103,8 @@ express()
   })
   //getInterestOver24hours sends response.
   .get('/interest', (req, res) => { getInterestOver24hours(req, res) })
+  //getTrends sends response.
+  .get('/trends', (req, res) => {getTrends(req, res)})
   .get('/saveArticle', async (req, res) => {
     try {
       var nurl = req.query.nurl;
@@ -353,7 +363,7 @@ function getInterestOver24hours(req, res) {
   });
 }
 
-// writing this new fangled JS style.
+// writing this new fangled arrow style.
 getRelatedEntities = (req, res) => {
   // the idea is to query dandelion's entity extraction endpoint api
   // to pull out the topics involved. I'm using dandelion and not one 
@@ -378,6 +388,36 @@ getRelatedEntities = (req, res) => {
     throwError(505, err.name, err.message);
   });
 }
+
+// getTrends
+// Retrieves the current trending searches on Google. Currently returning
+// the token and the number of requests formatted for display, e.g., 100k, 50k, 20k
+// [["Cougars vs Rebels", "200k"],["War on Christmas", "20k"]]
+// written with callback. sends own response.
+function getTrends(req, res) {
+  var trendDate = req.query.trendDate === undefined ? new Date() : req.query.trendDate;
+  trendDate = getDateFormatted(trendDate);
+  console.log('getTrends: trendDate: ', trendDate);
+  // quirky googletrends. 
+  googleTrends.dailyTrends({
+    trendDate: trendDate,
+    geo: 'US',
+  }, function (err, results) {
+    if (err) {
+      console.error(err);
+      throwError(err);
+    } else {
+      //console.log(results);
+      parsedResults = JSON.parse(results);
+      trending = parsedResults.default.trendingSearchesDays[0].trendingSearches.map(result => {
+        return [result.title.query, result.formattedTraffic]
+      });
+      console.log('getTrends: trending: ', trending);
+      res.send(JSON.stringify(trending));
+    }
+  });
+}
+
 
 // ERROR HANDLING HELPER FUNCTIONS 
 // rewriting everything to handle errors better

@@ -49,9 +49,12 @@
   max-width: 100%;
 }
 
+body {
+  background-color: #e6e6e6;;
+}
 .wrapper {
   display: grid;
-  grid-gap: 5px;
+  grid-gap: 3px;
   grid-template-columns: 1fr 1fr 1fr 1.25fr;
   /* grid-template-rows: 30rem 15rem 15rem; */
   grid-template-rows: 30rem 20rem 15rem;
@@ -141,6 +144,10 @@ li>a>img {
 .b {
   grid-column: 4;
   grid-row: 1 / span 3;
+  overflow-y: scroll;
+  overflow-x: scroll;
+  /*hate to do this but....*/
+  max-width: 38rem;
 }
 
 .c {
@@ -160,9 +167,43 @@ li>a>img {
   grid-row: 2 /span 2;
   overflow-y: scroll;
 }
+.trending {
+ border-bottom: ivory 1px;
+}
+#graph {
+  position: fixed;
+  bottom: 8px;
+  overflow-x: scroll;
+  max-width: 28rem;
+}
+
+@media all and (min-width:600) {
+  #graph {
+    max-width: 20rem;
+  }
+}
+@media all and (min-width:800) {
+  #graph {
+    max-width: 26rem;
+  }
+}
+@media all and (min-width:1000) {
+  #graph {
+    max-width: 28rem;
+  }
+}
+@media all and (min-width:1200) {
+  #graph {
+    max-width: 30rem;
+  }
+}
 
 h4 {
   font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.3rem;
 }
 
 .a h4, .b h4 {
@@ -185,16 +226,16 @@ h4 {
   /*Google News*/
 }
 
-.b h5 {
+.b h5, .boxHeader {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.trendingHeader {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
 }
 
 #detail {
   font-size: 1.4rem;
-}
-
-body {
-  /* margin: 10px; */
 }
 
 .right {
@@ -223,6 +264,10 @@ body {
 .padRight {
   padding-right: 1rem;
   ;
+}
+
+.center {
+  text-align: center;
 }
 
 .noContent {
@@ -270,4 +315,41 @@ body {
 
 .display-content {
   display: initial;
+}
+/*News Ticker*/
+@keyframes ticker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+.tcontainer{
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid #e6e6e6;
+}
+.ticker-wrap {
+  width: 100%;
+  padding-left: 100%;
+  background-color: #262626;
+}
+.ticker-wrap:hover{
+  background-color: #1c1c1c;
+}
+.ticker-move {
+  display: inline-block;
+  white-space: nowrap;
+  padding-right: 100%;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-name: ticker;
+  animation-duration: 45s;
+}
+.ticker-move:hover{
+  animation-play-state: paused;
+}
+.ticker-item{
+  display: inline-block;
+  padding: 0 2rem;
+}
+.ticker-item a {
+  color: inherit;
 }

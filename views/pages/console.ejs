@@ -5,44 +5,64 @@
    <% include ../partials/header.ejs %>
 </head>
 
- <body>
-    <!-- <div class="container"> -->
-      <%- include('../partials/nav.ejs', {results: results}) %>
+<body>
+   <!-- <div class="container"> -->
+   <%- include('../partials/nav.ejs', {results: results}) %>
    <!-- </div> -->
-	 <div class="wrapper">
-		<div class="box a">
-         <h4 id="articleTitle">How to use: <a href="javascript:void(0)"> 
-            
-            <span class="glyphicon glyphicon-globe right"></span>
-            <span class="glyphicon glyphicon-floppy-disk right padRight"></span>
-         </a>
-            
+   <div class="wrapper">
+      <div class="box a">
+         <h4 id="articleTitle">How to use: <a href="javascript:void(0)">
+
+               <span class="glyphicon glyphicon-globe right"></span>
+               <span class="glyphicon glyphicon-floppy-disk right padRight"></span>
+            </a>
+
          </h4>
          <div id="detail">
             <ul>
-               <li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li>
-               <li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li>
-               <li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li>
-               <li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li>
-               <li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li>
-               <li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li>
-               <li>. —————————————————————————————–———————————————————————————— .</li>
-               <li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li>
-               <li>. —————————————————————————————————————————————————————————— .</li>  
+               <li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in
+                  each source box below or from the <span class="boxHeader">Control Menu</span> above .</li>
+               <li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"
+                     onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li>
+               <li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>  
+                  will load in the <span class="boxHeader">Analysis</span> box to the right.</li>
+               <li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li>
+               <li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li>
+               <li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li>
+               <li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li>
+               <li>8. <span class="boxHeader">Trending Searches</span> load headlines and popularity graph when clicked</li>
+               <li>
+                  &nbsp;
+               </li>
+               <li>. ————————————————————————————————————————————————————— .</li>
+               <li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click
+                  the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li>
+               <li>. ————————————————————————————————————————————————————— .</li>
             </ul>
-               
+
          </div>
       </div>
-		<div class="box b">
+      <div class="box b">
+         <div id="trending">
+            <span class="trendingHeader">Trending Searches:</span>
+               <div class="tcontainer">
+                  <div class="ticker-wrap">
+                     <div class="ticker-move" id="trendingContent">
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                     </div>
+                  </div>
+               </div>
+           </div>   
          <h4>Analysis:</h4>
          <!-- For tracking: -->
-         <ul>
-            <%if(false) {%>
+         <%if(false) {%>
+         <ul>            
             <% results.forEach(function(r) { %>
-               <li><%= r.id %> - <%= r.name %></li>
+            <li><%= r.id %> - <%= r.name %></li>
             <% }); %>
-            <%}%>
         </ul>
+        <%}%>
         <div id="aylienAnal">
         </div>
         <div id="analysis">
