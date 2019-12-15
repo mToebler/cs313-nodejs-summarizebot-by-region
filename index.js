@@ -5,19 +5,14 @@
     -  Integrate it into Analysis  -
     -      when first loaded       -
     - !!!!!!!!!!!!!!!!!!!!!!!!!!!! -
-    --------------------------------
-    - consider using InterestByRegion (GTrends)
-    - organize code into included module
+done--------------------------------
+nproc- organize code into included module
 done- use only the 6 highest rated related terms (if exist)
-    - add media to articles
-    - use highest ranking related term for a graph on article load?
+    - add media to article box?
+done- use highest ranking related term for a graph on article load?
     - consider animation while waiting
-    - error handling!!!
+npoc- error handling!!!
     - allowing the third source spot (Google) to be configured from a list?
-done- superfluous " showing up at the end of video and NYTimes articles - this 
-      seems to be happening with all articles, just noticed more in the videos. Check if the last
-      char is a ", if it is trim it? Something may be happening with the json to make that be sticking
-      out like that.
 */
 const express = require('express');
 const path = require('path');
@@ -63,10 +58,12 @@ express()
   .set('view engine', 'ejs')
   // setting up the webroot, RR-TNT console
   .get('/nyt', (req, res) => {
-    getNyTimesMostViewed(req.query.q).then(results => { res.send(results) });
+    getNyTimesMostViewed(req.query.q).then(results => { res.send(results) }).catch(error => {
+      console.error('NYTimes Error', error);
+      res.send('NYTimes Error' + error)
+    });
   })
   .get('/fox', (req, res) => {
-    //getNewsApiPopularFox().then(results => { res.send(results) });
     fetchNewsApi(FOX_NEWS, req.query.q).then(results => { res.send(results) });
   })
   .get('/googlenews', (req, res) => {
@@ -75,8 +72,7 @@ express()
   .get('/aylien', (req, res) => {
     textapi.sentiment({ 'mode': 'document', 'url': encodeURI(req.query.nurl) }, (error, response) => {
       if (error === null) {
-        console.log(response);
-        //var result = JSON.parse(response);
+        console.log(response);        
         var result = JSON.stringify(response);
         console.log(result);
         res.send(result);
@@ -84,10 +80,8 @@ express()
         console.error(`Aylien error: ${error}`);
         // throw Error('Aylien error: ' + error);
         var sentiment = { "polarity": "Not analyzed", "polarity_confidence": "Problem in text" }
-        console.log('Sending error sentiment (strfy): ' + JSON.stringify(sentiment));
-        //console.log('Sending error sentiment (parsed)' + JSON.parse(sentiment));
+        console.error('Sending error sentiment (strfy): ' + JSON.stringify(sentiment));
         sentiment = JSON.stringify(sentiment);
-        console.log(sentiment)
         res.send(sentiment);
       }
 
@@ -114,8 +108,7 @@ express()
       const results = {
         'results': (result) ? result.rows : null
       };
-      console.log('/saveArticle results:', results);
-      //res.render('partials/nav', results);
+      console.log('/saveArticle results:', results);      
       client.release();
       res.send({ status: '200', newId: 'NULL' });
     } catch (err) {
@@ -141,11 +134,8 @@ express()
   })
   .get('/', async (req, res) => {
     try {
-      // putting this back to fetching locations from the db. Although no functionality 
-      // is associated with them yet.
-
-      const client = await pool.connect();
-      //const result = await client.query('SELECT * FROM location');
+      // retrieving saved articles on load
+      const client = await pool.connect();      
       const result = await client.query('SELECT * FROM articles WHERE saved = true');
       const results = {
         'results': (result) ? result.rows : null
@@ -158,19 +148,18 @@ express()
       res.send("Error " + err);
     }
   })
-  // redirecting everything to console
+  // redirecting everything else to console
   .get('*', (req, res) => {
-    // var url_parts = url.parse(req.url).pathname;
-    // console.log(url_parts);
-    // console.log(url_parts.pathname);
     console.log('request for: ' + url.parse(req.url).pathname);
     res.redirect('/');
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-// named functions
 
-// NYTimes
+// NAMED FUNCTIONS
+// ===============
+
+// NYTimes returns most viewed articles in the last day
 async function getNyTimesMostViewed(token) {
   //Elasticsearch, so the filter query uses standard Lucene syntax. 
   var urlStr = '';
@@ -206,7 +195,9 @@ async function getNyTimesMostViewed(token) {
   return JSON.stringify(titles);
 }
 
-
+// Dandilion (Dandelion) is a limited free text analyzing API. It's results are 
+// shakey, but they don't expire like Aylien and others ><
+// this function requests a sentiment check for the provided URL.
 async function fetchDandilion(nurl) {
   var fetchStr = 'https://api.dandelion.eu/datatxt/sent/v1/?lang=en&url=' + nurl + '&token=' + dandAPI;
   const results = await fetch(fetchStr);
@@ -233,19 +224,22 @@ async function getAylien(nurl) {
       return response; //JSON.parse(response).stringify();
     } else {
       console.log('Aylien ERROR: ' + error);
-      //throwError(code, errorType, errorMessage);
       // new error handling API
       sendError(response, '', error);
-      //response.send('error! Aylien!');
     }
-  });//.catch(error => { throwError('501' 'Aylien catch ERROR', error) });
+  });
   const data = await results.json();
   console.log('getAylien: about to return data: ' + data);
   return results;
 }
 
 //fetchNewsApi
-// the idea is to take newsApi and feed it a domain to plug into the API call.
+// NewsApi is what was left after Google took a hatchet to their
+// moghty Google News API which evidently had issues of silo'ing and was 
+// open to manipulation. The features are limited and don't allow
+// mixing location  & query/token. One of the few daggers that killed off
+// the regional tracking plan.
+// Feed a domain to plug into the API call.
 async function fetchNewsApi(apiUrl, token) {
   var titles = '';
   var urlStr = '';
@@ -254,7 +248,6 @@ async function fetchNewsApi(apiUrl, token) {
   } else {
     token = encodeURIComponent(token);
     urlStr = SEARCH_NEWS_URLS[apiUrl][1] + '&q=' + token;
-    console.log('fetchNewsApi: token url is: ', urlStr);
   }
   const response = await fetch(urlStr);
   if (response.status >= 400) {
@@ -265,10 +258,12 @@ async function fetchNewsApi(apiUrl, token) {
     return [result.title, result.url];
   });
   console.log(titles);
-  //console.log(JSON.stringify(titles));
   return JSON.stringify(titles);
 }
 
+// Wrapper function. Queries the 3 main news sources
+// using await in a manner that doesn't impede the other 
+// API calls.
 async function queryAllSources(token) {
   if (token) token = encodeURIComponent(token);
   const nyt = getNyTimesMostViewed(token);
@@ -280,46 +275,6 @@ async function queryAllSources(token) {
   // may return a promise object but I don't think so.
   // returning an array of stringified json objects.
   return [nyt, google, fox];
-}
-
-//newsApi for Fox
-// should make this modular
-// this is now depricated for fetchNewsAPI(APIURL)
-async function getNewsApiPopularFox() {
-  var titles = '';
-  var links = '';
-  //console.log(newsapi.API_KEY);
-  const response = await fetch('https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY);
-  if (response.status >= 400) {
-    throw new Error("Bad response from server");
-  }
-  const data = await response.json();
-  titles = data.articles.map(result => {
-    return [result.title, result.url];
-  });
-  // links = data.articles.map((result, index, array) => {
-  //   return result.url;
-  // })
-  console.log(titles);
-  console.log(JSON.stringify(titles));
-  // return titles;
-  return JSON.stringify(titles);
-}
-
-//newsApi returns top headlines for a query string if provided.
-// deprecated for fetchNewsAPI(APIURL)
-function getNewsApiPoliticalTop10(q) {
-  newsapi.v2.topHeadlines({
-    q: q == null ? '' : q,
-    category: 'politics',
-    language: 'en',
-    country: 'us'
-  }).then(response => {
-    return response.json();
-  })
-  // find better structure.
-  // this may be a promise object
-  return response;
 }
 
 // Using the limited Google Trends API to plot popularity
@@ -505,3 +460,46 @@ function getDateFormatted(formatMe = new Date(), sepr8r = '-') {
   var formatMe = yyyy + sepr8r + mm + sepr8r + dd;
   return new Date(formatMe);
 }
+
+// DEPRICATED FUNCTIONS
+// =====================
+//newsApi for Fox
+// should make this modular
+// this is now depricated for fetchNewsAPI(APIURL)
+async function getNewsApiPopularFox() {
+  var titles = '';
+  var links = '';
+  //console.log(newsapi.API_KEY);
+  const response = await fetch('https://newsapi.org/v2/everything?domains=foxnews.com&pageSize=5&apiKey=' + process.env.API_KEY);
+  if (response.status >= 400) {
+    throw new Error("Bad response from server");
+  }
+  const data = await response.json();
+  titles = data.articles.map(result => {
+    return [result.title, result.url];
+  });
+  // links = data.articles.map((result, index, array) => {
+  //   return result.url;
+  // })
+  console.log(titles);
+  console.log(JSON.stringify(titles));
+  // return titles;
+  return JSON.stringify(titles);
+}
+
+//newsApi returns top headlines for a query string if provided.
+// deprecated for fetchNewsAPI(APIURL)
+function getNewsApiPoliticalTop10(q) {
+  newsapi.v2.topHeadlines({
+    q: q == null ? '' : q,
+    category: 'politics',
+    language: 'en',
+    country: 'us'
+  }).then(response => {
+    return response.json();
+  })
+  // find better structure.
+  // this may be a promise object
+  return response;
+}
+

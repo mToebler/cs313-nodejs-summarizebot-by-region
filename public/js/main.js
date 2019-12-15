@@ -12,7 +12,7 @@ $(function() {
    });
 });
 
-// load trending searches
+// load trending searches on page load
 $(function () {
    loadTrends();
 })
@@ -58,7 +58,6 @@ function dandelionAnalyze(ajaxUrl) {
    // using dandelion to get the 'summary'
    $.get('/sentiment?nurl=' + ajaxUrl, function (data) {
       $('#detail').text('Loading story and analysis...');
-      console.log('dandelion getted:' + data);
       return data;
    })
       // consider changing to response.json() (won't hold process)
@@ -66,17 +65,12 @@ function dandelionAnalyze(ajaxUrl) {
          $('#detail').text('Loading story and analysis.....');
          return JSON.parse(response);
       })
-      .then(data => {
-         console.log(data);
+      .then(data => {     
          $('#analysis').text('Dandelion rating: ' + (JSON.stringify(data.sentiment.score)) +
             ' ' + (JSON.stringify(data.sentiment.type)));
          // getting ridiculous results here
-         //replace(/(\\){1}(n){1}/, '');
-         // getting \n and \\n in some results.
          var detailText = JSON.stringify(data.text).replace(/\\n/g, ' ').replace(/\n/g, ' ').replace(/\\"/g, '&quot;');
-         detailText = detailText.substr(1, detailText.length - 2);
-         //$('#detail').text(detailText + " -- Original article: " + ajaxUrl);
-         console.log("dandeLionAnalyze: detailText : ", detailText);
+         detailText = detailText.substr(1, detailText.length - 2);                  
          $('#detail').html(detailText + "<br> <span class='OEMArticle'> --Original article: " + ajaxUrl + ' </span>');
       });
 }
@@ -86,8 +80,7 @@ function aylienAnalyze(ajaxUrl) {
    $('#aylienAnal').text('AYLIEN: loading analysis...')
    // trying the => function notation
    try {
-      $.get('/aylien?nurl=' + ajaxUrl, (data) => {
-         console.log('aylien getted: ' + data);
+      $.get('/aylien?nurl=' + ajaxUrl, (data) => {         
          return data;
       })
          .then(response => JSON.parse(response))
@@ -100,7 +93,7 @@ function aylienAnalyze(ajaxUrl) {
             $('#credits').html('Querying <a href="https://aylien.com/">AYLIEN</a> for sentiment analysis.')
          );
    } catch (error) {
-      console.log('try-catch aylien error:' + error);
+      console.error('try-catch aylien error:' + error);
    }
 }
 
@@ -114,8 +107,8 @@ getRelatedEntities = (ajaxUrl) => {
       //it's been stringified, prolly need to parse it back into json
       var values = JSON.parse(data);
       // order them by rank
-      if (values.length > 1) {
-         console.log('getReltedEntities: before sort: ', values);
+      if (values.length > 1) {      
+         // spread operator. not to be confused with the rest operator
          values = [...values].sort(compare);
          console.log('getRelatedEntities: after sort: ', values);
       }
@@ -126,8 +119,9 @@ getRelatedEntities = (ajaxUrl) => {
          if (index < 6) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
       });
       $('#related').html('<h5>Related:</h5><ul>' + results.join('') + '</ul>');
+      console.log('getRelatedEntities: distinctValues[0] is: ', distinctValues, distinctValues[0]);
       // let's fire off a graph of the top RelatedEntity if it exists
-      if (distinctValues[0].length > 0) {
+      if ((distinctValues.length > 0) ) { //&& (distinctValues[0].length > 0)) {
          graphToken(distinctValues[0]);
       }         
    });
@@ -156,26 +150,23 @@ function ajaxPullAll() {
 function userSearch(qStr) {
    qStr = qStr === undefined ? $('#userSearchText').val() : qStr;
    if (qStr.length > 0) {
-      // $.get('/q?q='+qStr, (data) => {
-      //    console.log(data);
-      // });
       ajaxRequest('/fox?q=' + qStr);
       ajaxRequest('/googlenews?q=' + qStr);
       ajaxRequest('/nyt?q=' + qStr);
-
+      // plot.ly
       graphToken(qStr);
    }
 }
 
 function processAjaxUrl(ajaxUrl) {
    var x = ajaxUrl.indexOf('?');
-   console.log(x);
    if (x > 0)
       return ajaxUrl.slice(1, x);
    else
       return ajaxUrl.slice(1);
 }
 
+// working with plot.ly's graphing js lib
 function graphToken(token) {
    $.get('/interest?token=' + token, results => {
       console.log('graphToken results :', results);
@@ -191,6 +182,7 @@ function graphToken(token) {
       };
       console.log('popularity: ', JSON.stringify(popularity));
       var data = [popularity];
+      // hard earned info
       var layout = {
          title: 'Recent Relative Popularity of ' + token,
          plot_bgcolor: '#444',
@@ -222,26 +214,22 @@ function loadTrends(trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
    
-   $.get(tUrl, results => { 
-      console.log('loadTrends: received: ', results);
+   $.get(tUrl, results => {       
       let values = JSON.parse(results);
       //[[term, popularity][term, popularity]]
       // i believe values is ready to go, just needs formatting
-      let trends = values.map(value => {
-         //return '<li onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: ' + value[1] + '</li>';
-         return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
-      });
-      //$('#trending').html('<h5>Currently Trending:</h5><ul>' + trends.join('') + '</ul>');
+      let trends = values.map(value => {         
+         return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (parseInt(value[1]) > 200 ? 'RGBA(255,0,0,1)' : value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
+      });      
       var fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
       $('#trendingContent').html(trends.join('') + fillerDiv + fillerDiv);      
    })
 }
 
+// why the let here? Don't recall.
 let displayHelp = () => {
-   //$('#detail').html('<ul><li>1. Individual news headlines may be loaded and refreshed through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box or from the control menu above.</li><li>2. All sources may be loaded or refreshed at once through the control menu above by selecting <a href="javascript:void(0)" onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Select a headline to replace these instructions with the body of the article. A <span class="standout">sentiment analysis</span> of the text will load in the Analysis box to the right.</li><li>4. Use the <span class="glyphicon glyphicon-search padLeft"></span>Search box for results from all sources and a <span class="standout">graph</span> showing the relative popularity of that search term over the last 36 hours.</li><li>5. <span class="glyphicon glyphicon-floppy-disk padLeft"></span> saves a loaded article to the Saved Articles menu.</li><li>6. <span class="glyphicon glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>. —————————————————————————————–———————————————————————————— .</li><li class="menu-font smaller-text padLeft">Clicking &ldquo;Real-Time News Tracker&rdquo; reloads the app. To view these instructions again, click the <span class="standout">8) R-TNT</span> logo or selecet &ldquo;Help&rdquo; from the control menu.</li><li>. —————————————————————————————————————————————————————————— .</li></ul>');
    $('#detail').html('<ul><li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box below or from the <span class="boxHeader">Control Menu</span> above .</li><li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"    onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>   will load in the <span class="boxHeader">Analysis</span> box to the right.</li><li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li><li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li><li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li><li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>8. <span class="boxHeader">Trending Searches</span> load headlines and popularity graph when clicked</li><li> &nbsp;</li><li>. ————————————————————————————————————————————————————— .</li><li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li><li>. ————————————————————————————————————————————————————— .</li></ul>');
-
-   $('#articleTitle').html('<h4>How to use:</h4>');
+   $('#articleTitle').html('<h4>How to use R-TNT News Tracker: <a href="javascript:void(0)"><span class="glyphicon glyphicon-globe right"></span><span class="glyphicon glyphicon-floppy-disk right padRight"></span></a></h4>');
 };
 
 //just a wrapper for ajaxSentimentCheck. adding in functionality there. Is this a flag parameter? >< tightCoupling!
@@ -278,12 +266,10 @@ removeArticle = (articleUrl) => {
       if (response.status == 200) {
          // url encoded?
          selectorStr = '#saved-' + removeSpecialChars(articleUrl);
-         console.log('removeArticle: selectorStr: ' + selectorStr);
+         
          $(selectorStr).remove();
          var htmlStr = $('#articleTitle').html();
          var index = htmlStr.indexOf("removeArticle") - 38;
-         console.log('removeArticle: htmlStr is: ' + htmlStr);
-         console.log('removeArticle: index is: ' + index);
          $('#articleTitle').html(htmlStr.substring(0, index));
       } else {
          alert('Article not removed' + response);
