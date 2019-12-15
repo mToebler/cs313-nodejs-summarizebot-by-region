@@ -12,10 +12,9 @@ $(function() {
    });
 });
 
-// load trending searches on page load
-$(function () {
-   loadTrends();
-})
+// load trending searches every 15 minutes
+var trendingIntervalHandler = $(setInterval(loadTrends(), 900000));
+
 
 // ajaxRequest launches a deceiptively simple looking jquery ajax request
 // based on the url based in as an argument, then changes the contents
@@ -213,13 +212,13 @@ function loadTrends(trendDate) {
    if (trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
-   
+   console.log('loadTrends: loading latest stats.');
    $.get(tUrl, results => {       
       let values = JSON.parse(results);
       //[[term, popularity][term, popularity]]
       // i believe values is ready to go, just needs formatting
       let trends = values.map(value => {         
-         return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (parseInt(value[1]) > 200 ? 'RGBA(255,0,0,1)' : value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
+         return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (value[1].indexOf('M') > 0 ? 'RGBA(0,255,0,1)' : parseInt(value[1]) > 200 ? 'RGBA(255,0,0,0.9)' : value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>'; 
       });      
       var fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
       $('#trendingContent').html(trends.join('') + fillerDiv + fillerDiv);      
