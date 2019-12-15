@@ -12,10 +12,9 @@ $(function() {
    });
 });
 
-// load trending searches on page load
-$(function () {
-   loadTrends();
-})
+// load trending searches every 15 minutes
+var trendingIntervalHandler = $(setInterval(loadTrends(), 900000));
+
 
 // ajaxRequest launches a deceiptively simple looking jquery ajax request
 // based on the url based in as an argument, then changes the contents
@@ -213,7 +212,7 @@ function loadTrends(trendDate) {
    if (trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
-   
+   console.log('loadTrends: loading latest stats.');
    $.get(tUrl, results => {       
       let values = JSON.parse(results);
       //[[term, popularity][term, popularity]]
