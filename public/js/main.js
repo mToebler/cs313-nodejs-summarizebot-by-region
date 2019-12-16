@@ -227,7 +227,7 @@ function loadTrends(trendDate) {
    if (trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
-   console.log('loadTrends: loading latest stats.');
+   //console.log('loadTrends: loading latest stats.');
    $.get(tUrl, results => {       
       let values = JSON.parse(results);
       //[[term, popularity][term, popularity]]
@@ -236,6 +236,21 @@ function loadTrends(trendDate) {
          return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (value[1].indexOf('M') > 0 ? 'RGBA(0,255,0,1)' : parseInt(value[1]) > 200 ? 'RGBA(255,0,0,0.9)' : value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
       });            
       $('#trendingContent').html(trends.join('') + fillerDiv + fillerDiv);      
+      // during the day, there may be anywhere from 5 to 20 trending searches 
+      // this will affect the speed of the animation. Each ticker-item should increase the time by X secs.
+      // currently adding 2 buffer items ". . . . . . ". Ticker speed of 45 was nice for 20+2. 45/22=2.05
+      // but ticker seems a bit jumpy with lower items at that speed. Slow down to 3s per item at 7, but slow
+      // down to 2.05 at 22, call this limittingFactor ~ .07: tickerInterval = (3.5 - (.07*tickerItems) 
+      let limittingFactor = 0.067;
+      // given the varying size of the ticker-text, this means the ticker-speed will vary slightly faster
+      // or slower during the day.
+      // get ticker-item #
+      let tickerItemNum = $('.ticker-item').length;
+      let tickerInterval = 3.5 - (limittingFactor * tickerItemNum);
+      let tickerTime = tickerItemNum * tickerInterval + 's';
+      // and set the time for the whole lot.
+      $('.ticker-move').css('animation-duration', tickerTime);
+      console.log('loadTrends: loaded latest, set ticker duration to: ', tickerTime);
    })
 }
 

@@ -366,10 +366,12 @@ h5 {
   animation-iteration-count: infinite;
   animation-timing-function: linear;
   animation-name: ticker;
-  animation-duration: 45s;
+  /* animation-duration: 45s; */
+  animation-duration: 20s;
 }
 .ticker-move:hover{
-  animation-play-state: paused;
+  /* animation-play-state: paused; */
+  animation-play-state: active;
 }
 .ticker-item{
   display: inline-block;
