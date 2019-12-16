@@ -119,9 +119,10 @@ getRelatedEntities = (ajaxUrl) => {
       // using ECMAScript 6's spread operator and Set class to get around this:
       var distinctValues = [... new Set(values.map((value) => value[0]))];
       var results = distinctValues.map((value, index) => {
-         if (index < 6) return '<li onclick="userSearch(\'' + value + '\')"><a href="javascript:void(0)">' + value + '</a></li>';
+         console.log(value);
+         if (index < 6) return "<li onclick='userSearch(\""+(value.replace('\'', '&apos;'))+"\")'><a href='javascript:void(0)'>"+value+"</a></li>";
       });
-      $('#related').html('<h5>Related:</h5><ul>' + results.join('') + '</ul>');
+      $('#related').html("<h5>Related:</h5><ul>" + results.join('') + "</ul>");
       console.log('getRelatedEntities: distinctValues[0] is: ', distinctValues, distinctValues[0]);
       // let's fire off a graph of the top RelatedEntity if it exists
       if ((distinctValues.length > 0) ) { //&& (distinctValues[0].length > 0)) {
