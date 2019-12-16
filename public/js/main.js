@@ -12,8 +12,11 @@ $(function() {
    });
 });
 
-// load trending searches every 15 minutes
-var trendingIntervalHandler = $(setInterval(loadTrends(), 900000));
+// load trending searches at start and ....
+$(loadTrends());
+//then every 15 minutes thereafter
+var trendingIntervalHandler = $(setInterval(loadTrends, 900000));
+
 
 
 // ajaxRequest launches a deceiptively simple looking jquery ajax request
@@ -26,7 +29,8 @@ function ajaxRequest(ajaxUrl) {
       var results = JSON.parse(data).map((value, index, array) => {
          // expecting an array of arrays here. the 1st value in contained 
          // array: title; the 2nd: its url. return each like so:
-         return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
+         //return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
+         return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '&#8217;') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
       });
       console.log('returning to: ' + divId + ' this: ' + results + 'derived from: ' + data);
       $(divId).html('<ul>' + results.join('') + '</ul>');
@@ -181,11 +185,20 @@ function graphToken(token) {
       };
       console.log('popularity: ', JSON.stringify(popularity));
       var data = [popularity];
+      // want to set titeFont smaller depending on length of token
+      var titleFontSize = (token.length > 17 ? "10" : "13");
+
       // hard earned info
       var layout = {
-         title: 'Recent Relative Popularity of ' + token,
+         title: 'Recent Relative Interest in ' + token,
+         titleFont: {
+            family: '"Helvetica Neue",Helvetica,Arial,sans-serif',
+            size: '10',
+         },
          plot_bgcolor: '#444',
-         paper_bgcolor: '#262626',
+         //paper_bgcolor: '#262626',
+         paper_bgcolor: 'rgba(0,0,0,0)',
+         //plot_bgcolor: 'rgba(0,0,0,0)',
          height: '350',
          font: {
             family: '"Helvetica Neue",Helvetica,Arial,sans-serif',
@@ -208,7 +221,8 @@ function graphToken(token) {
 }
 
 function loadTrends(trendDate) {
-   var tUrl = '/trends';
+   let tUrl = '/trends';
+   const fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
    if (trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
@@ -219,15 +233,14 @@ function loadTrends(trendDate) {
       // i believe values is ready to go, just needs formatting
       let trends = values.map(value => {         
          return '<div class="ticker-item" onclick="userSearch(\'' + value[0] + '\')"><a href="javascript:void(0)">' + value[0] + '</a>: <span style="color:' + (value[1].indexOf('M') > 0 ? 'RGBA(0,255,0,1)' : parseInt(value[1]) > 200 ? 'RGBA(255,0,0,0.9)' : value[1].search('200K') > -1 ? 'RGBA(255,0,0,0.7)' : value[1].search('100K') > -1 ? 'RGBA(255,128,0,0.7)' : value[1].search('50K') > -1 ? 'RGBA(255,255,0,0.7)' : 'inherit') + '">' + value[1] + '</span></div>';         
-      });      
-      var fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
+      });            
       $('#trendingContent').html(trends.join('') + fillerDiv + fillerDiv);      
    })
 }
 
 // why the let here? Don't recall.
 let displayHelp = () => {
-   $('#detail').html('<ul><li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box below or from the <span class="boxHeader">Control Menu</span> above .</li><li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"    onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>   will load in the <span class="boxHeader">Analysis</span> box to the right.</li><li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li><li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li><li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li><li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>8. <span class="boxHeader">Trending Searches</span> load headlines and popularity graph when clicked</li><li> &nbsp;</li><li>. ————————————————————————————————————————————————————— .</li><li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li><li>. ————————————————————————————————————————————————————— .</li></ul>');
+   $('#detail').html('<ul><li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box below or from the <span class="boxHeader">Control Menu</span> above .</li><li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"    onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>   will load in the <span class="boxHeader">Analysis</span> box to the right.</li><li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li><li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li><li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li><li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>8. <span class="boxHeader">Trending Search Topics</span> load headlines and popularity graph when clicked</li><li> &nbsp;</li><li>. ————————————————————————————————————————————————————— .</li><li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li><li>. ————————————————————————————————————————————————————— .</li></ul>');
    $('#articleTitle').html('<h4>How to use R-TNT News Tracker: <a href="javascript:void(0)"><span class="glyphicon glyphicon-globe right"></span><span class="glyphicon glyphicon-floppy-disk right padRight"></span></a></h4>');
 };
 

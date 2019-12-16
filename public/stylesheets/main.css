@@ -86,7 +86,7 @@ body {
   font-family: 'Crimson Pro', serif;
   color: #e6e6e6;
   border-radius: 5px;
-  padding: 18px;
+  padding: 16px;
   font-size: 1.2rem;
   line-height: 1.3;
   transition: background-color .5s;
@@ -94,6 +94,10 @@ body {
 
 .box:hover {
   background-color: #1c1c1c;
+}
+
+.b:hover {
+  background-color: #262626;
 }
 
 .box a {
@@ -132,10 +136,6 @@ li>a>img {
   filter: invert(100%);
 }
 
-#related ul {
-  font-size: 1rem;
-}
-
 .a {
   grid-column: 1 / span 3;
   overflow-y: scroll;
@@ -147,7 +147,7 @@ li>a>img {
   overflow-y: scroll;
   overflow-x: scroll;
   /*hate to do this but....*/
-  max-width: 38rem;
+  /* max-width: 38rem; */
 }
 
 .c {
@@ -170,11 +170,36 @@ li>a>img {
 .trending {
  border-bottom: ivory 1px;
 }
+
+.flexible {
+display:flex;
+flex-direction: column;
+flex-wrap: nowrap;
+min-height: 54rem;
+}
+#aylienAnal {
+  min-height:2rem;
+}
+#analysis {
+  min-height:2rem;
+}
+#related {
+  min-height:14rem;
+
+}
+#related ul {
+  font-size: 1rem;
+}
+#credits{
+  display:none;
+}
 #graph {
-  position: fixed;
+  /* position: fixed; */
+  min-height: 34rem;
+  vertical-align: bottom;
   bottom: 8px;
   overflow-x: scroll;
-  max-width: 28rem;
+  min-width: 28rem;
 }
 
 @media all and (min-width:600) {
@@ -353,3 +378,8 @@ h5 {
 .ticker-item a {
   color: inherit;
 }
+.ticker-item::first-letter {
+  font-size: 1.25rem;
+  color: #82B1D8;
+}
+

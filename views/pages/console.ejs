@@ -30,7 +30,7 @@
                <li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li>
                <li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li>
                <li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li>
-               <li>8. <span class="boxHeader">Trending Searches</span> load headlines and popularity graph when clicked</li>
+               <li>8. <span class="boxHeader">Trending Search Topics</span> load headlines and popularity graph when clicked</li>
                <li>
                   &nbsp;
                </li>
@@ -44,35 +44,53 @@
       </div>
       <div class="box b">
          <div id="trending">
-            <span class="trendingHeader">Trending Searches:</span>
+            <span class="trendingHeader">Trending Search Topics:</span>
                <div class="tcontainer">
                   <div class="ticker-wrap">
                      <div class="ticker-move" id="trendingContent">
                         <div class="ticker-item">Loading latest trending searches from Google</div>
                         <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>                        
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>
+                        <div class="ticker-item">Loading latest trending searches from Google</div>
+                        <div class="ticker-item">..................................</div>                                                
                      </div>
                   </div>
                </div>
            </div>   
-         <h4>Analysis:</h4>
-         <!-- For tracking: -->
-         <%if(false) {%>
-         <ul>            
-            <% results.forEach(function(r) { %>
-            <li><%= r.id %> - <%= r.name %></li>
-            <% }); %>
-        </ul>
-        <%}%>
-        <div id="aylienAnal">
-        </div>
-        <div id="analysis">
-        </div>
-        <div id="related">
+        <!--adding containing div here to keep these from riding on eachother -->
+          <div class="flexible">
+            <h4>Analysis:</h4>
+            <div id="aylienAnal">
+               &nbsp;
+            </div>
+            <div id="analysis">
+               &nbsp;
+            </div> 
+            <div id="related">
+               &nbsp;
+            </div>
+            <div id="credits">
+               &nbsp;
+            </div>
+            <div id="graph">
+               &nbsp;
+            </div>
          </div>
-        <div id="graph">
-        </div>
-        <div id="credits">
-        </div>
       </div>
       <div class="box c">
          <h4>Fox News:
