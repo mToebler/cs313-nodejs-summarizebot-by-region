@@ -53,14 +53,26 @@ body {
   background-color: #e6e6e6;;
 }
 .wrapper {
+  /* setup the grid */
   display: grid;
+  /* creates the whitish border between sections */
   grid-gap: 3px;
+  /* fr means fraction and however many there are, that's the total
+     so below (currently) there is a total of 4.25 space, and each has it's own 
+     column fraction of that width. 1fr is then 1/4.25 = 23.5%  */
   grid-template-columns: 1fr 1fr 1fr 1.25fr;
-  /* grid-template-rows: 30rem 15rem 15rem; */
+  /* grid-template-rows: 30rem 15rem 15rem; */  
   grid-template-rows: 30rem 20rem 15rem;
   background-color: #ededed;
   color: #444;
   margin: .25rem;
+}
+@media (max-width: 767px) {
+  /* mobile wrapper - we want to keep two columns, one larger for article and 
+     sources stacked on top of each other, the second column for analysis.*/
+     .wrapper {
+      grid-template-rows: repeat(auto-fit, 30rem);
+    }  
 }
 
 @media (min-width: 768px) {
@@ -167,6 +179,25 @@ li>a>img {
   grid-row: 2 /span 2;
   overflow-y: scroll;
 }
+@media (max-width: 768px) {
+  /* mobile source boxes: there's just rows of 30px each now. b, c, d, e will be affected*/
+  .b {
+    grid-row: 1 / span 4;
+  }
+  .c {
+    grid-column: 1 / span 3;
+    grid-row: 2 /span 1;
+  }
+  .d {
+    grid-column: 1 / span 3;
+    grid-row: 3 /span 1;
+  }
+  .e {
+    grid-column: 1 / span 3;  
+    grid-row: 4 /span 1;
+  }
+}
+
 .trending {
  border-bottom: ivory 1px;
 }
@@ -383,5 +414,8 @@ h5 {
 .ticker-item::first-letter {
   font-size: 1.25rem;
   color: #82B1D8;
+}
+.lydia_catherine_tobler_color {
+  color: rgb(0, 238, 255);
 }
 

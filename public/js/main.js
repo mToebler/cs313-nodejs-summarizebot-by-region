@@ -224,6 +224,7 @@ function graphToken(token) {
 function loadTrends(trendDate) {
    let tUrl = '/trends';
    const fillerDiv = '<div class="ticker-item">&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.&nbsp;.</div>'
+   const LYDIA_CATHERINE_TOBLER_DIV = '<div class="ticker-item lydia_catherine_tobler_color">&nbsp;Lydia Catherine Tobler&nbsp;</div>';
    if (trendDate) {
       tUrl = tUrl + '?trendDate=' + trendDate;
    } 
@@ -254,7 +255,7 @@ function loadTrends(trendDate) {
    })
 }
 
-// why the let here? Don't recall.
+// why the let here? Don't recall. Doesn't make sense since it's declared globally anyhow, right?
 let displayHelp = () => {
    $('#detail').html('<ul><li>1. Individual news source headlines may be loaded through the <span class="glyphicon standout glyphicon-refresh padLeft"></span> in each source box below or from the <span class="boxHeader">Control Menu</span> above .</li><li>2. ALL news sources may be loaded at once through the <span class="boxHeader">Control Menu</span> above by selecting <a href="javascript:void(0)"    onclick="ajaxPullAll()">&ldquo;Pull latest from ALL sources.&rdquo;</a></li><li>3. Selecting a headline below will replace this content with an article, and a <span class="standout">sentiment analysis</span>   will load in the <span class="boxHeader">Analysis</span> box to the right.</li><li>4. Use the <span class="glyphicon standout glyphicon-search padLeft"></span><span class="boxHeader">Search</span> box to load results from ALL news sources</li><li>5. Loading articles and searching will attempt to show a <span class="standout">graph</span> of the relative popularity of that or related terms over the last 36 hours.</li><li>6. <span class="glyphicon standout glyphicon-floppy-disk padLeft"></span> saves an article to the <span class="boxHeader">Saved Articles</span> menu above. Selecting a saved article from the menu will load it here.</li><li>7. <span class="glyphicon standout glyphicon-globe padLeft"></span> opens a new tab or window with the original article.</li><li>8. <span class="boxHeader">Trending Search Topics</span> load headlines and popularity graph when clicked</li><li> &nbsp;</li><li>. ————————————————————————————————————————————————————— .</li><li class="menu-font center smaller-text padLeft">Clicking <span class="glyphicon standout glyphicon-home padLeft"></span>Real-Time News Tracker reloads the app. To view these instructions again,<br> click the <span class="standout">8) R-TNT</span> logo or select <span class="glyphicon standout glyphicon-info-sign padLeft"></span>Help from above.</li><li>. ————————————————————————————————————————————————————— .</li></ul>');
    $('#articleTitle').html('<h4>How to use R-TNT News Tracker: <a href="javascript:void(0)"><span class="glyphicon glyphicon-globe right"></span><span class="glyphicon glyphicon-floppy-disk right padRight"></span></a></h4>');
