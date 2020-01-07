@@ -75,6 +75,13 @@ body {
     }  
 }
 
+@media (max-width: 885px) {
+  /*  nav needs to collapse a bit here. */
+  #rtntListedLogo {
+    display: none;
+  }
+
+}
 @media (min-width: 768px) {
   .navbar {
     max-height: 5.6rem;
