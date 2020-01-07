@@ -32,7 +32,7 @@ function ajaxRequest(ajaxUrl) {
          //return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '-') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
          return "<li><a href='javascript:void(0)' onclick='ajaxSentimentCheck(" + JSON.stringify(value[0]).replace(/'/g, '&#8217;') + ", \"" + value[1] + "\")'>" + value[0] + "</a></li>";
       });
-      console.log('returning to: ' + divId + ' this: ' + results + 'derived from: ' + data);
+      //console.log('returning to: ' + divId + ' this: ' + results + 'derived from: ' + data);
       $(divId).html('<ul>' + results.join('') + '</ul>');
    });
 }
@@ -88,7 +88,7 @@ function aylienAnalyze(ajaxUrl) {
       })
          .then(response => JSON.parse(response))
          .then(data => {
-            console.log(data.polarity);
+            //console.log(data.polarity);
             $('#aylienAnal').text('AYLIEN analysis: ' + data.polarity + ', confidence(' +
                data.polarity_confidence + ')');
             $('#credits').html('Big thanks to <a href="https://aylien.com/">AYLIEN</a> for use of sentiment analysis tools.');
@@ -119,7 +119,7 @@ getRelatedEntities = (ajaxUrl) => {
       // using ECMAScript 6's spread operator and Set class to get around this:
       var distinctValues = [... new Set(values.map((value) => value[0]))];
       var results = distinctValues.map((value, index) => {
-         console.log(value);
+         //console.log(value);
          if (index < 6) return "<li onclick='userSearch(\""+(value.replace('\'', '&apos;'))+"\")'><a href='javascript:void(0)'>"+value+"</a></li>";
       });
       $('#related').html("<h5>Related:</h5><ul>" + results.join('') + "</ul>");
@@ -173,7 +173,7 @@ function processAjaxUrl(ajaxUrl) {
 // working with plot.ly's graphing js lib
 function graphToken(token) {
    $.get('/interest?token=' + token, results => {
-      console.log('graphToken results :', results);
+      //console.log('graphToken results :', results);
       let values = JSON.parse(results);
       let indices = [];
       var popularities = values.map((value, index) => {
@@ -184,7 +184,7 @@ function graphToken(token) {
          x: indices, y: popularities, type: 'scatter',
          line: { color: '#82B1D8', width: '1' }
       };
-      console.log('popularity: ', JSON.stringify(popularity));
+      //console.log('popularity: ', JSON.stringify(popularity));
       var data = [popularity];
       // want to set titeFont smaller depending on length of token
       var titleFontSize = (token.length > 17 ? "10" : "13");
