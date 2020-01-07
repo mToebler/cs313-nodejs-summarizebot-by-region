@@ -113,7 +113,7 @@ getRelatedEntities = (ajaxUrl) => {
       if (values.length > 1) {      
          // spread operator. not to be confused with the rest operator
          values = [...values].sort(compare);
-         console.log('getRelatedEntities: after sort: ', values);
+         //console.log('getRelatedEntities: after sort: ', values);
       }
       // problem with terms being returned multiple times when referenced multiple times.
       // using ECMAScript 6's spread operator and Set class to get around this:
