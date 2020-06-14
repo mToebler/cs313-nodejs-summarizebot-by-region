@@ -269,6 +269,11 @@ h5 {
   font-size: 1.3rem;
 }
 
+*::-webkit-scrollbar {
+  display: none;
+}
+
+
 .a h4, .b h4 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
