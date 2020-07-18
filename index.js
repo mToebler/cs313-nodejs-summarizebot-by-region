@@ -51,6 +51,16 @@ express()
   .use(express.static(path.join(__dirname, 'public')))
   // for parsing application/x-www-form-urlencoded
   .use(express.urlencoded({ extended: true }))
+  // adding in CORS policy need to get whatever GITHUB Pages use
+  .use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://172.58.75.185:5500");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    next();
+  })
   // defining the views path. this is required for templates.
   .set('views', path.join(__dirname, 'views'))
   // setting view engine to ejs. If pug, then we'd just replace ejs with pug
