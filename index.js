@@ -53,7 +53,8 @@ express()
   .use(express.urlencoded({ extended: true }))
   // adding in CORS policy need to get whatever GITHUB Pages use
   .use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
+    // res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
+    res.header("Access-Control-Allow-Origin", "*");    
     res.header(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept"
