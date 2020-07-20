@@ -52,9 +52,9 @@ express()
   // for parsing application/x-www-form-urlencoded
   .use(express.urlencoded({ extended: true }))
   // adding in CORS policy need to get whatever GITHUB Pages use
-  .use(function(req, res, next) {
+  .use(function (req, res, next) {
     // res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
-    res.header("Access-Control-Allow-Origin", "*");    
+    res.header("Access-Control-Allow-Origin", "*");
     res.header(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept"
@@ -74,6 +74,10 @@ express()
       res.send('NYTimes Error' + error)
     });
   })
+  // unique gateway for  SEM-NR
+  .get('/nytall', (req, res) => {
+    getJSON('https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' + nytapi).then(results => { res.send(results) });
+  })
   .get('/fox', (req, res) => {
     fetchNewsApi(FOX_NEWS, req.query.q).then(results => { res.send(results) });
   })
@@ -83,7 +87,7 @@ express()
   .get('/aylien', (req, res) => {
     textapi.sentiment({ 'mode': 'document', 'url': encodeURI(req.query.nurl) }, (error, response) => {
       if (error === null) {
-        console.log(response);        
+        console.log(response);
         var result = JSON.stringify(response);
         console.log(result);
         res.send(result);
@@ -109,7 +113,7 @@ express()
   //getInterestOver24hours sends response.
   .get('/interest', (req, res) => { getInterestOver24hours(req, res) })
   //getTrends sends response.
-  .get('/trends', (req, res) => {getTrends(req, res)})
+  .get('/trends', (req, res) => { getTrends(req, res) })
   .get('/saveArticle', async (req, res) => {
     try {
       var nurl = req.query.nurl;
@@ -119,7 +123,7 @@ express()
       const results = {
         'results': (result) ? result.rows : null
       };
-      console.log('/saveArticle results:', results);      
+      console.log('/saveArticle results:', results);
       client.release();
       res.send({ status: '200', newId: 'NULL' });
     } catch (err) {
@@ -146,7 +150,7 @@ express()
   .get('/', async (req, res) => {
     try {
       // retrieving saved articles on load
-      const client = await pool.connect();      
+      const client = await pool.connect();
       const result = await client.query('SELECT * FROM articles WHERE saved = true');
       const results = {
         'results': (result) ? result.rows : null
@@ -169,6 +173,28 @@ express()
 
 // NAMED FUNCTIONS
 // ===============
+// for SEM-NR
+async function getJSON(url = '') {
+  if (url) {
+    return await fetch(url)
+      .then(res => {
+        if (!res.ok) {
+          throw Error(res.statusText);
+        } else {
+          // just returning the serialized results. 
+          return res.json();
+          // return res;
+        }
+      }).catch(err => {
+        console.error('index.js:: getJSON: Error:', err);
+        throwError(500, 'index::getJSON error', err + '');
+      });
+  } else {
+    return Error('index.js::getJSON: Invalid URL', url);
+  }
+}
+
+
 
 // NYTimes returns most viewed articles in the last day
 async function getNyTimesMostViewed(token) {
